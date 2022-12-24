@@ -201,5 +201,7 @@ for i in range(len(df)) :
     if df['usefulness_review'][i] is None:
         df['usefulness_review'][i] = 0
 
+df.drop_duplicates(keep='first')
+
 # A mettre quand la liste d'hotel est en place
 # df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\Scrapping\Scrapping_Newport_Bay_Club_211222-2.csv', index = False, sep=';', encoding='utf-8')

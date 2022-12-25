@@ -55,7 +55,7 @@ for p in range(1,n_pages+1):
         try:
             name = driver.find_element(By.XPATH, name_path).text
         except:
-            name = None
+            name = "empty"
         collectName.append(name)
 
         # Pays voyageur
@@ -63,7 +63,7 @@ for p in range(1,n_pages+1):
         try:
             country = driver.find_element(By.XPATH, country_path).text
         except:
-            country = None
+            country = "empty"
         collectCountry.append(country)
 
         # Type de chambre
@@ -72,7 +72,7 @@ for p in range(1,n_pages+1):
         try: 
             type_room = driver.find_element(By.XPATH, type_room_path).text
         except:
-            type_room = None
+            type_room = "empty"
         collectType_room.append(type_room)
 
         # Nuitées
@@ -80,7 +80,7 @@ for p in range(1,n_pages+1):
         try:
             len_reservation = driver.find_element(By.XPATH, len_reservation_path).text
         except:
-            len_reservation = None
+            len_reservation = "empty"
         collectLen_reservation.append(len_reservation[0])
 
         # Mois année du voyage
@@ -88,7 +88,7 @@ for p in range(1,n_pages+1):
         try:
             month_year = driver.find_element(By.XPATH, month_year_path).text
         except:
-            month_year = None
+            month_year = "empty"
         collectMonth_year.append(month_year)
 
         # Informations voyageur
@@ -96,7 +96,7 @@ for p in range(1,n_pages+1):
         try:
             voyageur_info = driver.find_element(By.XPATH, voyageur_info_path).text
         except:
-            voyageur_info = None
+            voyageur_info = "empty"
         collectVoyageur_info.append(voyageur_info)
 
         # Date 
@@ -106,14 +106,14 @@ for p in range(1,n_pages+1):
         try:
             date_review = driver.find_element(By.XPATH, date_review_path).text
         except:
-            date_review = None
+            date_review = "empty"
 
         if date_review == 'Le choix des voyageurs' : 
         
             try:
                 date_review = driver.find_element(By.XPATH, date_review_path2).text
             except:
-                date_review = None
+                date_review = "empty"
                 
         collectDate_review.append(date_review)
 
@@ -122,7 +122,7 @@ for p in range(1,n_pages+1):
         try:
             review_title = driver.find_element(By.XPATH, review_title_path).text
         except:
-            review_title = None
+            review_title = "empty"
         collectReview_title.append(review_title)
         
         # Note
@@ -130,7 +130,7 @@ for p in range(1,n_pages+1):
         try:
             grade_review = driver.find_element(By.XPATH, grade_review_path).text
         except:
-            grade_review = None
+            grade_review = "empty"
         collectGrade_review.append(grade_review)
 
         # Commentaire positif
@@ -138,7 +138,7 @@ for p in range(1,n_pages+1):
         try:
             positive_review = driver.find_element(By.XPATH, positive_review_path).text
         except: 
-            positive_review = None
+            positive_review = "empty"
         collectPositive_review.append(positive_review)
         
         # Commentaire négatif
@@ -146,7 +146,7 @@ for p in range(1,n_pages+1):
         try:
             negative_review = driver.find_element(By.XPATH, negative_review_path).text
         except:
-            negative_review = None
+            negative_review = "empty"
 
         collectNegative_review.append(negative_review)
 
@@ -155,7 +155,7 @@ for p in range(1,n_pages+1):
         try:
             is_review_usefull = driver.find_element(By.XPATH, is_review_usefull_path).text
         except:
-            is_review_usefull = None
+            is_review_usefull = "empty"
         collectIs_review_usefull.append(is_review_usefull)
 
         UniqueID = name + country + type_room + month_year + voyageur_info + date_review + review_title
@@ -195,10 +195,7 @@ df['usefulness_review'] = df['usefulness_review'].str[:2]
 
 for i in range(len(df)) : 
 
-    if df['usefulness_review'][i] == "Na":
-        df['usefulness_review'][i] = 0
-
-    if df['usefulness_review'][i] is None:
+    if df['usefulness_review'][i] == "em":
         df['usefulness_review'][i] = 0
 
 df.drop_duplicates(keep='first')

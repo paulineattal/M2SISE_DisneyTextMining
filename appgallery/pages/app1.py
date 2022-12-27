@@ -327,8 +327,8 @@ def layout():
     Output(component_id='top_pays',component_property='srcDoc'),
     Output(component_id='pourcentage_avis_positifs',component_property='children'),
     Output(component_id='pourcentage_avis_negatifs',component_property='children'),
-    #Output(component_id='fig_avis_positifs',component_property='srcDoc'),
-    #Output(component_id='fig_avis_negatifs',component_property='srcDoc'),
+    Output(component_id='fig_avis_positifs',component_property='srcDoc'),
+    Output(component_id='fig_avis_negatifs',component_property='srcDoc'),
     #les variables qui feront évoler les outputs (indices, graphiques,...) ci-dessus
     Input(component_id='hotel-dropdown',component_property='value'),
     Input(component_id='notes-dropdown',component_property='value'),
@@ -349,32 +349,31 @@ def update_output(decision_hotel,choix_groupe,start_date,end_date):
             pays=df_select3.Country.value_counts().reset_index().head(5)
             percentplus=round((1-df_select3.positive_review.isnull().sum()/len(df_select3))*100,3)
             percentmoins=round((1-df_select3.negative_review.isnull().sum()/len(df_select3))*100,3)
-            #avisplus=word_cloud(df_select3,'positive_review')
-            #avismoins=word_cloud(df_select3,'negative_review')
+            avisplus=word_cloud(df_select3,'positive_review')
+            avismoins=word_cloud(df_select3,'negative_review')
         elif choix_groupe==2:
             titres=df_select2[~df_select2.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
             pays=df_select2.Country.value_counts().reset_index().head(5)
             percentplus=round((1-df_select2.positive_review.isnull().sum()/len(df_select2))*100,3)
             percentmoins=round((1-df_select2.negative_review.isnull().sum()/len(df_select2))*100,3)
-            #avisplus=word_cloud(df_select2,'positive_review')
-            #avismoins=word_cloud(df_select2,'negative_review')
+            avisplus=word_cloud(df_select2,'positive_review')
+            avismoins=word_cloud(df_select2,'negative_review')
         elif choix_groupe==1:
             titres=df_select1[~df_select1.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
             pays=df_select1.Country.value_counts().reset_index().head(5)
             percentplus=round((1-df_select1.positive_review.isnull().sum()/len(df_select1))*100,3)
             percentmoins=round((1-df_select1.negative_review.isnull().sum()/len(df_select1))*100,3)
-            #avisplus=word_cloud(df_select1,'positive_review')
-            #avismoins=word_cloud(df_select1,'negative_review')
+            avisplus=word_cloud(df_select1,'positive_review')
+            avismoins=word_cloud(df_select1,'negative_review')
         elif choix_groupe==0:
             titres=df_select0[~df_select0.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
             pays=df_select0.Country.value_counts().reset_index().head(5)
             percentplus=round((1-df_select0.positive_review.isnull().sum()/len(df_select0))*100,3)
             percentmoins=round((1-df_select0.negative_review.isnull().sum()/len(df_select0))*100,3)
-            #avisplus=word_cloud(df_select0,'positive_review')
-            #avismoins=word_cloud(df_select0,'negative_review')
+            avisplus=word_cloud(df_select0,'positive_review')
+            avismoins=word_cloud(df_select0,'negative_review')
         titres=titres.rename(columns={"index": "Titres", "review_title": "Effectifs"})
         titres = titres.style.set_properties(**{'color': 'white','font-size': '20pt',})
         pays=pays.rename(columns={"index": "Pays", "Country": "Effectifs"})
         pays = pays.style.set_properties(**{'color': 'white','font-size': '20pt',})
-    return titres.to_html(index=False,header=False),pays.to_html(index=False,header=False),percentplus,percentmoins
-#,avisplus,avismoins
+    return titres.to_html(index=False,header=False),pays.to_html(index=False,header=False),percentplus,percentmoins,avisplus,avismoins

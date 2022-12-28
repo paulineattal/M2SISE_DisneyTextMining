@@ -1,7 +1,6 @@
 from gettext import install
 
 from datetime import datetime as dt
-from .side_bar import sidebar
 
 #importation des librairies
 import dash
@@ -32,10 +31,10 @@ import plotly.express as px
 from wordcloud import WordCloud
 import mpld3
 
-dash.register_page(__name__)
+dash.register_page(__name__,title='Second résumé')
 
 #chargement du fichier
-df=pd.read_csv('assets/df_clean_newport.csv',sep=';')
+df=pd.read_csv('data/df_clean_newport.csv',sep=';')
 
 #------------------------------traitement du data frame-----------------------------------------
 #-----------------------------------------------------------------------------------------------
@@ -118,29 +117,9 @@ def word_cloud(df,champ):
     #plt.show()
     return(html_matplotlib)
 
-def sungraph(df):
-    fig = px.sunburst(df, path=['year', 'month_str'], values='nuitee',
-                  color='grade_review',
-                  color_continuous_scale='RdBu',
-                  color_continuous_midpoint=np.average(df['grade_review'], weights=df['nuitee']))
-    return(fig)
 
 #----------------définition des cartes-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------
-
-#Définition d'une carte qui créer un titre pour l'application
-card_title=dbc.Card([
-                    dbc.CardBody([
-                            #écriture du texte dans le corps de la carte
-                            #html.H2("Disney Booking",className="Card-title",style={'textAlign': 'center','font-size':50}),
-                            sidebar(),
-                            ])
-                    ],
-                    color="white", #choix de la couleur
-                    inverse=False, #pour que le texte soit en blanc (sur fond noir)
-                    outline=False, #True enlève la couleur de la carte
-                    style={'height':'100%'},
-                )
 
 #Définition de la carte date
 card_date=dbc.Card([
@@ -293,10 +272,9 @@ def layout():
     #permet d'avoir la structure de la page qui sera affichée
     dbc.Row(
             [
-                dbc.Col(card_title,width=2),
-                dbc.Col(card_date,width=4),
+                dbc.Col(card_date,width=5),
                 dbc.Col(card_filter_hotel,width=3),
-                dbc.Col(card_filter_notes,width=3),
+                dbc.Col(card_filter_notes,width=4),
             ],
             justify="end",
         ),
@@ -310,8 +288,8 @@ def layout():
         dbc.Row([],style={'height':'3vh'},),
         dbc.Row(
             [
-                #dbc.Col(card_positifs, width=6),
-                #dbc.Col(card_negatifs,width=6)
+                dbc.Col(card_positifs, width=6),
+                dbc.Col(card_negatifs,width=6)
             ],
         ),
     ],

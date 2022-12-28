@@ -215,12 +215,12 @@ card_pourcentage_commentaires=dbc.Card([
                         dbc.CardBody([
                                 #affichage du pourcentage d'avis positifs
                                 html.H4("Pourcentage d'avis positifs",className="Card-text"),
-                                html.P('',style={'height':'0.5vh'}),
+                                #html.P('',style={'height':'0.5vh'}),
                                 html.H2(id='pourcentage_avis_positifs'),
-                                html.P('',style={'height':'2vh'}),
+                                html.P('',style={'height':'1vh'}),
                                 #affichage du pourcentage d'avis négatifs
                                 html.H4("Pourcentage d'avis négatifs",className="Card-text"),
-                                html.P('',style={'height':'0.5vh'}),
+                                #html.P('',style={'height':'0.5vh'}),
                                 html.H2(id='pourcentage_avis_negatifs'),
                             ])
                         ],
@@ -317,41 +317,19 @@ def layout():
 def update_output(decision_hotel,choix_groupe,start_date,end_date):
     autotitres = ['Fabuleux ','Bien ','Passable','Assez médiocre ','Médiocre ']
     dff=df.loc[start_date:end_date]
-    if decision_hotel==6:
-        df_select3=dff[dff.hotel=="Disney's Newport Bay Club"]
-        df_select2=dff[(dff.hotel=="Disney's Newport Bay Club") & (dff.grade_review>=8)]
-        df_select1=dff[(dff.hotel=="Disney's Newport Bay Club") & (dff.grade_review<8) & (dff.grade_review>5)]
-        df_select0=dff[(dff.hotel=="Disney's Newport Bay Club") & (dff.grade_review<=5)]
-        if choix_groupe==3: 
-            titres=df_select3[~df_select3.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
-            pays=df_select3.Country.value_counts().reset_index().head(5)
-            percentplus=round((1-df_select3.positive_review.isnull().sum()/len(df_select3))*100,3)
-            percentmoins=round((1-df_select3.negative_review.isnull().sum()/len(df_select3))*100,3)
-            avisplus=word_cloud(df_select3,'positive_review')
-            avismoins=word_cloud(df_select3,'negative_review')
-        elif choix_groupe==2:
-            titres=df_select2[~df_select2.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
-            pays=df_select2.Country.value_counts().reset_index().head(5)
-            percentplus=round((1-df_select2.positive_review.isnull().sum()/len(df_select2))*100,3)
-            percentmoins=round((1-df_select2.negative_review.isnull().sum()/len(df_select2))*100,3)
-            avisplus=word_cloud(df_select2,'positive_review')
-            avismoins=word_cloud(df_select2,'negative_review')
-        elif choix_groupe==1:
-            titres=df_select1[~df_select1.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
-            pays=df_select1.Country.value_counts().reset_index().head(5)
-            percentplus=round((1-df_select1.positive_review.isnull().sum()/len(df_select1))*100,3)
-            percentmoins=round((1-df_select1.negative_review.isnull().sum()/len(df_select1))*100,3)
-            avisplus=word_cloud(df_select1,'positive_review')
-            avismoins=word_cloud(df_select1,'negative_review')
-        elif choix_groupe==0:
-            titres=df_select0[~df_select0.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
-            pays=df_select0.Country.value_counts().reset_index().head(5)
-            percentplus=round((1-df_select0.positive_review.isnull().sum()/len(df_select0))*100,3)
-            percentmoins=round((1-df_select0.negative_review.isnull().sum()/len(df_select0))*100,3)
-            avisplus=word_cloud(df_select0,'positive_review')
-            avismoins=word_cloud(df_select0,'negative_review')
-        titres=titres.rename(columns={"index": "Titres", "review_title": "Effectifs"})
-        titres = titres.style.set_properties(**{'color': 'white','font-size': '20pt',})
-        pays=pays.rename(columns={"index": "Pays", "Country": "Effectifs"})
-        pays = pays.style.set_properties(**{'color': 'white','font-size': '20pt',})
+    if choix_groupe==3:
+        df_select=dff[dff.level_hotel==decision_hotel]
+    else:
+        df_select=dff[(dff.level_hotel==decision_hotel) & (dff.level_grade_review==choix_groupe)]
+    
+    titres=df_select[~df_select.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
+    pays=df_select.Country.value_counts().reset_index().head(5)
+    percentplus=round((1-df_select.positive_review.isnull().sum()/len(df_select))*100,3)
+    percentmoins=round((1-df_select.negative_review.isnull().sum()/len(df_select))*100,3)
+    avisplus=word_cloud(df_select,'positive_review')
+    avismoins=word_cloud(df_select,'negative_review') 
+    titres=titres.rename(columns={"index": "Titres", "review_title": "Effectifs"})
+    titres = titres.style.set_properties(**{'color': 'white','font-size': '20pt',})
+    pays=pays.rename(columns={"index": "Pays", "Country": "Effectifs"})
+    pays = pays.style.set_properties(**{'color': 'white','font-size': '20pt',})
     return titres.to_html(index=False,header=False),pays.to_html(index=False,header=False),percentplus,percentmoins,avisplus,avismoins

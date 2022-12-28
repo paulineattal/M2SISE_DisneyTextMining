@@ -169,25 +169,13 @@ fluid=True,
 
 def update_output(decision_hotel,choix_groupe,start_date,end_date):
     dff=df.loc[start_date:end_date]
-    if decision_hotel==6:
-        df_select3=dff[dff.hotel=="Disney's Newport Bay Club"]
-        df_select2=dff[(dff.hotel=="Disney's Newport Bay Club") & (dff.grade_review>=8)]
-        df_select1=dff[(dff.hotel=="Disney's Newport Bay Club") & (dff.grade_review<8) & (dff.grade_review>5)]
-        df_select0=dff[(dff.hotel=="Disney's Newport Bay Club") & (dff.grade_review<=5)]
-        if choix_groupe==3: 
-            note=round(df_select3.grade_review.mean(),3)
-            percentgroup=100
-            sun=sungraph(df_select3)
-        elif choix_groupe==2:
-            note=round(df_select2.grade_review.mean(),3)
-            percentgroup=round(len(df_select2)*100/len(df_select3),3)
-            sun=sungraph(df_select2)
-        elif choix_groupe==1:
-            note=round(df_select1.grade_review.mean(),3)
-            percentgroup=round(len(df_select1)*100/len(df_select3),3)
-            sun=sungraph(df_select1)
-        elif choix_groupe==0:
-            note=round(df_select0.grade_review.mean(),3)
-            percentgroup=round(len(df_select0)*100/len(df_select3),3)
-            sun=sungraph(df_select0)
+    if choix_groupe==3:
+        df_select=dff[dff.level_hotel==decision_hotel]
+        percentgroup=100
+    else :
+        df_select=dff[(dff.level_hotel==decision_hotel) & (dff.level_grade_review==choix_groupe)]
+        df_all=dff[(dff.level_hotel==decision_hotel)]
+        percentgroup=round(len(df_select)*100/len(df_all),3)
+    note=round(df_select.grade_review.mean(),3)
+    sun=sungraph(df_select)
     return note,percentgroup,sun

@@ -9,13 +9,14 @@ import numpy as np
 import pandas as pd
 
 # Get the driver
-driver = webdriver.Chrome("/usr/local/bin/chromedriver")
 
 HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
 
 chiffres = list("0123456789")
 
 for hotel in range(len(HotelsUrls)) : 
+
+    driver = webdriver.Chrome("/usr/local/bin/chromedriver")
 
     # Create list to get the data
     collectName = []
@@ -41,7 +42,6 @@ for hotel in range(len(HotelsUrls)) :
         pass 
 
     url = HotelsUrls.get(list(HotelsUrls.keys())[hotel])
-    print(url)
 
     # Put the url into the driver
     driver.get(url)
@@ -174,13 +174,12 @@ for hotel in range(len(HotelsUrls)) :
                     collectIs_review_usefull.append(is_review_usefull)
 
                     UniqueID = name + country + type_room + month_year + voyageur_info + date_review + review_title
-                    print(UniqueID)
+                    
                     try: 
                         check = len(checkScrapping[checkScrapping['UniqueID'] == UniqueID])
                     except: 
                         check = 0
                 
-                    print(check)
 
                     collectUniqueID.append(UniqueID)
         
@@ -226,5 +225,6 @@ for hotel in range(len(HotelsUrls)) :
             df['usefulness_review'][i] = 0
 
     df.drop_duplicates(keep='first')
-    print(df)
+    
+    # Enregistrer le fichier à mettre
     #df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\Scrapping\Scrapping_' + str(list(HotelsUrls.keys())[i]) + '.csv', index = False, sep=';', encoding='utf-8')

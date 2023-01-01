@@ -224,7 +224,12 @@ for hotel in range(len(HotelsUrls)) :
         if df['usefulness_review'][i] is None:
             df['usefulness_review'][i] = 0
 
+    try:
+        df = pd.concat([checkScrapping, df], ignore_index=True)
+    except: 
+        pass
+
     df.drop_duplicates(keep='first')
-    
+
     # Enregistrer le fichier à mettre
-    #df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\Scrapping\Scrapping_' + str(list(HotelsUrls.keys())[i]) + '.csv', index = False, sep=';', encoding='utf-8')
+    df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\fichiers\Scrapping_' + str(list(HotelsUrls.keys())[i]) + '.csv', index = False, sep=';', encoding='utf-8')

@@ -232,4 +232,4 @@ for hotel in range(len(HotelsUrls)) :
     df.drop_duplicates(keep='first')
 
     # Enregistrer le fichier à mettre
-    df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\fichiers\Scrapping_' + str(list(HotelsUrls.keys())[i]) + '.csv', index = False, sep=';', encoding='utf-8')
+    df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\fichiers\Scrapping_' + str(list(HotelsUrls.keys())[hotel]) + '.csv', index = False, sep=';', encoding='utf-8')

@@ -11,15 +11,14 @@ layout = html.Div([
     dcc.Markdown('### Summary', style={'textAlign': 'center'}),
     html.Hr(),
     dcc.Markdown('Projet du Master SISE concernant le web scrapping de booking. \n'
-                 'Lorsque vous cliquer sur projets : vous aurez un premier résumé du fichier et un accès à deux applications. \n'
-                 'vous devez resélectionner vos choix pour chaque partie',
+                 'Pour chaque projet (App1, App2, App3), Trois champs peuvent être modifiés : Dates, Hôtel, groupe selon la note.\n'
+                 'vous devez resélectionner vos choix pour chaque projet',
                  style={'textAlign': 'center', 'white-space': 'pre'}),
 
     dcc.Markdown('### Description applications', style={'textAlign': 'center'}),
     html.Hr(),
     dbc.Row([
         dbc.Col([
-            #dcc.Markdown('Résumé', style={'textAlign': 'center'})
             html.Img(src='assets/castle.jpg')
             ],width=2), 
         dbc.Col([
@@ -28,15 +27,14 @@ layout = html.Div([
                     dcc.Markdown('App 1', style={'textAlign': 'center'})
                 ], width=2),
                 dbc.Col([
-                    dcc.Markdown('Trois champs peuvent être modifiés \n'
-                                'Dates, Hôtel, groupe selon la note',
+                    dcc.Markdown('Renvoi un premier résumé comprenant',
                                 style={'white-space': 'pre'},
                                 className='ms-3'),
                     html.Ul([
-                        html.Li('Les dates vont de décembre 2019 à mars 2022'),
-                        html.Li('Actuellement, seul hôtel pouvant être sélectionné : Newport Bay Club'),
-                        html.Li('Trois groupes proposés selon les notes'),
-                        html.Li('Ensemble de KPI et de graphique évoluant selon ces champs ')
+                        html.Li('La moyenne des notes'),
+                        html.Li('Le pourcentage du groupe sélectionné'),
+                        html.Li('Un graphique avec, par mois et année,'),
+                        html.Li('le nombre de nuit et la moyenne des notes')
                     ])
                 ], width=5)
             ], justify='center'),
@@ -47,15 +45,15 @@ layout = html.Div([
                                 style={'textAlign': 'center'})
                 ], width=2),
                 dbc.Col([
-                    dcc.Markdown('Trois champs peuvent être modifiés \n'
-                                'Dates, Hôtel, groupe selon la note',
+                    dcc.Markdown('Renvoi un second résumé comprenant \n',
+                                'une première analyse des textes avec',
                                 style={'white-space': 'pre'},
                                 className='ms-3'),
                     html.Ul([
-                        html.Li('Les dates vont de décembre 2019 à mars 2022'),
-                        html.Li('Actuellement, seul hôtel pouvant être sélectionné : Newport Bay Club'),
-                        html.Li('Trois groupes proposés selon les notes'),
-                        html.Li('Ensemble de KPI et de graphique évoluant selon ces champs ')
+                        html.Li('Le TOP 3 des  titres les plus donnés parmi des titres non automatiques'),
+                        html.Li('Le TOP 5 des pays les plus représentés'),
+                        html.Li("Les pourcentages d'avis positifs et négatifs"),
+                        html.Li("Les nuages de mots des avis positifs et négatifs")
                     ])
                 ], width=5)
             ], justify='center'),
@@ -66,15 +64,14 @@ layout = html.Div([
                                 style={'textAlign': 'center'})
                 ], width=2),
                 dbc.Col([
-                    dcc.Markdown('Trois champs peuvent être modifiés \n'
-                                'Dates, Hôtel, groupe selon la note',
+                    dcc.Markdown('Renvoi un troisième résumé comprenant \n'
+                                'une seconde analyse des textes avec',
                                 style={'white-space': 'pre'},
                                 className='ms-3'),
                     html.Ul([
-                        html.Li('Les dates vont de décembre 2019 à mars 2022'),
-                        html.Li('Actuellement, seul hôtel pouvant être sélectionné : Newport Bay Club'),
-                        html.Li('Trois groupes proposés selon les notes'),
-                        html.Li('Ensemble de KPI et de graphique évoluant selon ces champs ')
+                        html.Li('Le pourcentage de commentaires postés avec un délai de deux ou trois mois'),
+                        html.Li('La moyenne des notes pour des commentaires postés avec un délai de deux ou trois mois'),
+                        html.Li('Des clusters pour les avis positifs et néagtifs'),
                     ])
                 ], width=5)
             ], justify='center'),

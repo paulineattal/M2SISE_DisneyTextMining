@@ -212,14 +212,19 @@ for hotel in range(len(HotelsUrls)) :
     df = pd.DataFrame(list(zip(Names, Country,room_type, nuitee, reservation_date, traveler_infos, date_review, review_title, grade_review, positive_review, negative_review, usefulness_review, UniqueID)), columns=columns)
     df=df.assign(hotel= str(list(HotelsUrls.keys())[hotel]))
 
-    df.loc[(df.usefulness_review == 'Utile Pas utile'),'usefulness_review']= np.nan
+    df.loc[(df.usefulness_review == 'Utile Pas utile'),'usefulness_review']= 'NaN'
 
-    df['usefulness_review'] = str(df['usefulness_review']).str[:2]
+    df['usefulness_review'] = df['usefulness_review'].str[:2]
 
-    try:
-        df = pd.concat([checkScrapping, df], ignore_index=True)
-    except: 
+    for i in range(len(df)): 
+
+        if df['usefulness_review'][i] == "Na" or pd.isna(df['usefulness_review'][i]) :
+            df['usefulness_review'][i] = "0"
+    
+    if checkScrapping.columns[0] == '404: Not Found' : 
         pass
+    else: 
+        df = pd.concat([df, checkScrapping], ignore_index=True)
 
     # Supprimer les doublons (si jamais il en existe, normalement non)
     df.drop_duplicates(keep='first')

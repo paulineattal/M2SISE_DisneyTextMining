@@ -104,12 +104,12 @@ def completer(i,k,clust,final_clusters):
         j=2
     if k==6 :
         j=3
-    un=clust[i].split()[k]
+    numero=clust[i].split()[k]
     final_clusters.loc[j,'numéro cluster']=i
-    final_clusters.loc[j,'pourcentages']=un[0:5]
-    final_clusters.loc[j,'mots']=un[7:len(un)-1]
+    final_clusters.loc[j,'pourcentages']=numero[0:5]
+    final_clusters.loc[j,'mots']=numero[7:len(numero)-1]
 
-def clusters(corpus,i):
+def clusters(corpus,i,couleur):
     # Création d'un dictionnaire avec le nombre de fois où chaque mots apparaît
     dictionary = corpora.Dictionary(corpus)
     #Filtrer les mots (non)fréquents
@@ -132,7 +132,10 @@ def clusters(corpus,i):
     completer(i,6,clust,final_clusters)
     final_clusters['numéro cluster'] = final_clusters['numéro cluster'].astype('int')
     final_clusters['pourcentages'] = pd.to_numeric(final_clusters['pourcentages'], downcast="float")
-    fig = px.bar(final_clusters, x="mots", y="pourcentages")  
+    if couleur=='positive_review' :
+        fig = px.bar(final_clusters, x="mots", y="pourcentages")  
+    else :
+        fig = px.bar(final_clusters, x="mots", y="pourcentages",color_discrete_sequence=['red'])  
     return fig
 
 #----------------définition des cartes-------------------------------------------------------------------------------
@@ -142,7 +145,7 @@ def clusters(corpus,i):
 card_date=dbc.Card([
 
                         dbc.CardBody([
-                            html.H4("Sélectionner une période entre décembre 2019 et mars 2022",className="Card-text"),
+                            html.H4("Sélectionner une période",className="Card-text"),
                             dcc.DatePickerRange(
                             id='date-picker-range',
                             min_date_allowed=dt(2019,12,22),
@@ -155,8 +158,8 @@ card_date=dbc.Card([
                             )  
                             ])
                     ],
-                        color="white", #choix de la couleur
-                        inverse=False,
+                        color="secondary", #choix de la couleur
+                        inverse=True,
                         outline=False, #True enlève la couleur de la carte
                         style={'height':'100%'},
                         className="w-75",
@@ -165,7 +168,7 @@ card_date=dbc.Card([
 #Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
 card_filter_hotel=dbc.Card([
                         dbc.CardBody([
-                                html.H4("Sélectionner l'hôtel",className="Card-text"),
+                                html.H4("l'hôtel",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),  
@@ -180,7 +183,7 @@ card_filter_hotel=dbc.Card([
 
 card_filter_notes=dbc.Card([
                         dbc.CardBody([
-                                html.H4("Sélectionner le groupe selon les notes",className="Card-text"),
+                                html.H4("le groupe selon les notes",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner le groupe
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='notes-dropdown',options=notes_dict,value=3,style = {"color":"black"}),  
@@ -196,7 +199,7 @@ card_filter_notes=dbc.Card([
 #Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
 card_filter_cluster=dbc.Card([
                         dbc.CardBody([
-                                html.H4("Sélectionner une cluster",className="Card-text"),
+                                html.H4("un cluster",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='clusters-dropdown',options=clusters_dict,value=0,style = {"color":"black"}),  
@@ -287,17 +290,18 @@ def layout():
     ),
     dbc.Row(
             [
-                dbc.Col(card_date,width=5),
-                dbc.Col(card_filter_hotel,width=3),
-                dbc.Col(card_filter_notes,width=4),
+                #dbc.Col(card_date,width=5),
+                #dbc.Col(card_filter_hotel,width=3),
+                #dbc.Col(card_filter_notes,width=4),
+                dbc.CardGroup([card_date,card_filter_hotel,card_filter_notes,card_filter_cluster])
             ],
             justify="end",
         ),
         dbc.Row(
             [   
-                dbc.Col(card_delai,width=3),
-                dbc.Col(card_sejour,width=5),
-                dbc.Col(card_filter_cluster,width=4),
+                dbc.Col(card_delai,width=4),
+                dbc.Col(card_sejour,width=8),
+                #dbc.Col(card_filter_cluster,width=4),
             ],
         ),
         dbc.Row([],style={'height':'3vh'},),
@@ -342,6 +346,7 @@ def update_output(decision_hotel,choix_groupe,choix_cluster,start_date,end_date)
     else :
         percentdelai=round(len(df_select[df_select.delay_comment>=2])*100/df_select.shape[0],3)
         moyennedelai=round(df_select[df_select.delay_comment>=2]['grade_review'].mean(),3)
+    
     d1=df_select.groupby(['traveler_infos'])[['index','Country']].count()*100/df_select.shape[0]
     d2=df_select.groupby(['traveler_infos'])[['grade_review','nuitee']].mean()
     df_sejour=pd.merge(d1,d2,on='traveler_infos')
@@ -350,8 +355,8 @@ def update_output(decision_hotel,choix_groupe,choix_cluster,start_date,end_date)
     sejour=sejour.rename(columns={"index": "pourcentages","grade_review":"moyenne"})
     corpusplus=creation_corpus_liste(df_select,'positive_review')
     corpusneg=creation_corpus_liste(df_select,'negative_review')
-    cap=clusters(corpusplus,choix_cluster)
-    can=clusters(corpusneg,choix_cluster)
+    cap=clusters(corpusplus,choix_cluster,'positive_review')
+    can=clusters(corpusneg,choix_cluster,'negative_review')
     sejour=round(sejour,3).head(4)
     sejour = sejour.style.set_properties(**{'color': 'white','font-size': '20pt',})
     return percentdelai,moyennedelai,sejour.to_html(index=False,header=True),cap,can

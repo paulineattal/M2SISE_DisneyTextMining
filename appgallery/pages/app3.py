@@ -48,6 +48,9 @@ hotel_dict=[{'label':html.Div(['Newport Bay Club'],style={'font-size':22}),'valu
 #Création d'un dictionnaire pour le filtre notes (dropdown)
 notes_dict=[{'label':html.Div(['Toutes notes'],style={'font-size':22}),'value':3},{'label':html.Div(['note >=8'],style={'font-size':22}),'value':2},{'label':html.Div(['5 < note < 8'],style={'font-size':22}),'value':1},{'label':html.Div(['notes <= 5'],style={'font-size':22}),'value':0}]
 
+#Création d'un dictionnaire pour le filtre clusters (dropdown)
+clusters_dict=[{'label':html.Div(['Premier cluster'],style={'font-size':22}),'value':0},{'label':html.Div(['Second cluster'],style={'font-size':22}),'value':1},{'label':html.Div(['Troisième cluster'],style={'font-size':22}),'value':2}]
+
 #--------------fonctions-----------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------
 
@@ -92,8 +95,22 @@ def creation_corpus_liste(df,champ):
         corpus_liste.append(nettoyage_doc(df_cloud.iloc[i,1]))
     return(corpus_liste)
 
-def clusters(corpus):
-        # Création d'un dictionnaire avec le nombre de fois où chaque mots apparaît
+def completer(i,k,clust,final_clusters):
+    if k==0 :
+        j=0
+    if k==2 :
+        j=1
+    if k==4 :
+        j=2
+    if k==6 :
+        j=3
+    un=clust[i].split()[k]
+    final_clusters.loc[j,'numéro cluster']=i
+    final_clusters.loc[j,'pourcentages']=un[0:5]
+    final_clusters.loc[j,'mots']=un[7:len(un)-1]
+
+def clusters(corpus,i):
+    # Création d'un dictionnaire avec le nombre de fois où chaque mots apparaît
     dictionary = corpora.Dictionary(corpus)
     #Filtrer les mots (non)fréquents
     dictionary.filter_extremes(no_below=10, keep_n=600)
@@ -106,8 +123,17 @@ def clusters(corpus):
     l=[]
     for topic in topics:
         l.append(topic)
-    clust=pd.DataFrame(l,columns = ['Clusters','Fréquence apparition de chaque terme'])
-    return clust
+    clusters=pd.DataFrame(l,columns = ['Clusters','Fréquence apparition de chaque terme'])
+    clust=clusters['Fréquence apparition de chaque terme'].map(str)
+    final_clusters = pd.DataFrame(columns=['numéro cluster','mots','pourcentages'], index = range(4))
+    completer(i,0,clust,final_clusters)
+    completer(i,2,clust,final_clusters)
+    completer(i,4,clust,final_clusters)
+    completer(i,6,clust,final_clusters)
+    final_clusters['numéro cluster'] = final_clusters['numéro cluster'].astype('int')
+    final_clusters['pourcentages'] = pd.to_numeric(final_clusters['pourcentages'], downcast="float")
+    fig = px.bar(final_clusters, x="mots", y="pourcentages")  
+    return fig
 
 #----------------définition des cartes-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------
@@ -167,6 +193,22 @@ card_filter_notes=dbc.Card([
                         className="w-75",
                     )
 
+#Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
+card_filter_cluster=dbc.Card([
+                        dbc.CardBody([
+                                html.H4("Sélectionner une cluster",className="Card-text"),
+                                #création de la barre de défilement pour sélectionner l'hôtel
+                                #servira de input dans la fonction callback
+                                dcc.Dropdown(id='clusters-dropdown',options=clusters_dict,value=0,style = {"color":"black"}),  
+                            ]),
+                        ],
+                        color="secondary", #choix de la couleur
+                        inverse=True,
+                        outline=False, #True enlève la couleur de la carte
+                        style={'height':'100%'},
+                        className="w-75",
+                    )
+
 ##Définition d'une carte pour les titres non automatiques
 card_delai=dbc.Card([
                         dbc.CardBody([
@@ -202,7 +244,7 @@ card_sejour=dbc.Card([
 card_positif=dbc.Card([
                     dbc.CardBody([
                         html.H4("Clusters avis positifs",className="Card-text"),
-                        html.Iframe(id = 'clusters_positifs',srcDoc=None,height=520,width=650)
+                        dcc.Graph(id='clusters_positifs',figure={})
                         ])
                     ],
                     color="info",
@@ -215,7 +257,7 @@ card_positif=dbc.Card([
 card_negatif=dbc.Card([
                     dbc.CardBody([
                         html.H4("Clusters avis négatifs",className="Card-text"),
-                        html.Iframe(id = 'clusters_negatifs',srcDoc=None,height=520,width=650)
+                        dcc.Graph(id='clusters_negatifs',figure={})
                         ])
                     ],
                     color="danger",
@@ -255,6 +297,7 @@ def layout():
             [   
                 dbc.Col(card_delai,width=3),
                 dbc.Col(card_sejour,width=5),
+                dbc.Col(card_filter_cluster,width=4),
             ],
         ),
         dbc.Row([],style={'height':'3vh'},),
@@ -276,24 +319,29 @@ def layout():
     Output(component_id='pourcentage_delai',component_property='children'),
     Output(component_id='moyenne_delai',component_property='children'),
     Output(component_id='type_sejour',component_property='srcDoc'),
-    Output(component_id='clusters_positifs',component_property='srcDoc'),
-    Output(component_id='clusters_negatifs',component_property='srcDoc'),
+    Output(component_id='clusters_positifs',component_property='figure'),
+    Output(component_id='clusters_negatifs',component_property='figure'),
     #les variables qui feront évoler les outputs (indices, graphiques,...) ci-dessus
     Input(component_id='hotel-dropdown',component_property='value'),
     Input(component_id='notes-dropdown',component_property='value'),
+    Input(component_id='clusters-dropdown',component_property='value'),
     Input('date-picker-range','start_date'),
     Input('date-picker-range','end_date')
 )
 
-def update_output(decision_hotel,choix_groupe,start_date,end_date):
+def update_output(decision_hotel,choix_groupe,choix_cluster,start_date,end_date):
     dff=df.loc[start_date:end_date]
     if choix_groupe==3: 
         df_select=dff[dff.level_hotel==decision_hotel]
     else:
         df_select=dff[(dff.level_hotel==decision_hotel) & (dff.level_grade_review==choix_groupe)]
     
-    percentdelai=round(len(df_select[df_select.delay_comment>=2])*100/df_select.shape[0],3)
-    moyennedelai=round(df_select[df_select.delay_comment>=2]['grade_review'].mean(),3)
+    if df_select.shape[0]==0 :
+        percentdelai=0
+        moyennedelai=0
+    else :
+        percentdelai=round(len(df_select[df_select.delay_comment>=2])*100/df_select.shape[0],3)
+        moyennedelai=round(df_select[df_select.delay_comment>=2]['grade_review'].mean(),3)
     d1=df_select.groupby(['traveler_infos'])[['index','Country']].count()*100/df_select.shape[0]
     d2=df_select.groupby(['traveler_infos'])[['grade_review','nuitee']].mean()
     df_sejour=pd.merge(d1,d2,on='traveler_infos')
@@ -302,12 +350,8 @@ def update_output(decision_hotel,choix_groupe,start_date,end_date):
     sejour=sejour.rename(columns={"index": "pourcentages","grade_review":"moyenne"})
     corpusplus=creation_corpus_liste(df_select,'positive_review')
     corpusneg=creation_corpus_liste(df_select,'negative_review')
-    cap=clusters(corpusplus)
-    can=clusters(corpusneg)
+    cap=clusters(corpusplus,choix_cluster)
+    can=clusters(corpusneg,choix_cluster)
     sejour=round(sejour,3).head(4)
-    cap=cap.rename(columns={"index": "clusters"})
-    can=can.rename(columns={"index": "clusters"})
-    cap = cap.style.set_properties(**{'color': 'white','font-size': '20pt',})
-    can = can.style.set_properties(**{'color': 'white','font-size': '20pt',})
     sejour = sejour.style.set_properties(**{'color': 'white','font-size': '20pt',})
-    return percentdelai,moyennedelai,sejour.to_html(index=False,header=True),cap.to_html(index=False,header=True),can.to_html(index=False,header=True)
+    return percentdelai,moyennedelai,sejour.to_html(index=False,header=True),cap,can

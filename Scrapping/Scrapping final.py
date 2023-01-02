@@ -72,7 +72,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         name = driver.find_element(By.XPATH, name_path).text
                     except:
-                        name = "empty"
+                        name = np.nan
                     collectName.append(name)
 
                     # Pays voyageur
@@ -80,7 +80,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         country = driver.find_element(By.XPATH, country_path).text
                     except:
-                        country = "empty"
+                        country = np.nan
                     collectCountry.append(country)
 
                     # Type de chambre
@@ -89,7 +89,7 @@ for hotel in range(len(HotelsUrls)) :
                     try: 
                         type_room = driver.find_element(By.XPATH, type_room_path).text
                     except:
-                        type_room = "empty"
+                        type_room = np.nan
                     collectType_room.append(type_room)
 
                     # Nuitées
@@ -97,7 +97,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         len_reservation = driver.find_element(By.XPATH, len_reservation_path).text
                     except:
-                        len_reservation = "empty"
+                        len_reservation = np.nan
                     collectLen_reservation.append(len_reservation[0])
 
                     # Mois année du voyage
@@ -105,7 +105,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         month_year = driver.find_element(By.XPATH, month_year_path).text
                     except:
-                        month_year = "empty"
+                        month_year = np.nan
                     collectMonth_year.append(month_year)
 
                     # Informations voyageur
@@ -113,7 +113,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         voyageur_info = driver.find_element(By.XPATH, voyageur_info_path).text
                     except:
-                        voyageur_info = "empty"
+                        voyageur_info = np.nan
                     collectVoyageur_info.append(voyageur_info)
 
                     # Date 
@@ -123,14 +123,14 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         date_review = driver.find_element(By.XPATH, date_review_path).text
                     except:
-                        date_review = "empty"
+                        date_review = np.nan
 
                     if date_review == 'Le choix des voyageurs' : 
         
                         try:
                             date_review = driver.find_element(By.XPATH, date_review_path2).text
                         except:
-                            date_review = "empty"
+                            date_review = np.nan
                     collectDate_review.append(date_review)
 
                     # Titre commentaire 
@@ -138,7 +138,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         review_title = driver.find_element(By.XPATH, review_title_path).text
                     except:
-                        review_title = "empty"
+                        review_title = np.nan
                     collectReview_title.append(review_title)
         
                     # Note
@@ -146,7 +146,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         grade_review = driver.find_element(By.XPATH, grade_review_path).text
                     except:
-                        grade_review = "empty"
+                        grade_review = np.nan
                     collectGrade_review.append(grade_review)
 
                     # Commentaire positif
@@ -154,7 +154,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         positive_review = driver.find_element(By.XPATH, positive_review_path).text
                     except: 
-                        positive_review = "empty"
+                        positive_review = np.nan
                     collectPositive_review.append(positive_review)
         
                     # Commentaire négatif
@@ -162,7 +162,7 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         negative_review = driver.find_element(By.XPATH, negative_review_path).text
                     except:
-                        negative_review = "empty"
+                        negative_review = np.nan
                     collectNegative_review.append(negative_review)
 
                     # Utilité commentaire
@@ -170,10 +170,10 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         is_review_usefull = driver.find_element(By.XPATH, is_review_usefull_path).text
                     except:
-                        is_review_usefull = "empty"
+                        is_review_usefull = np.nan
                     collectIs_review_usefull.append(is_review_usefull)
 
-                    UniqueID = name + country + type_room + month_year + voyageur_info + date_review + review_title
+                    UniqueID = str(name) + str(country) + str(type_room) + str(month_year) + str(voyageur_info) + str(date_review) + str(review_title)
                     
                     try: 
                         check = len(checkScrapping[checkScrapping['UniqueID'] == UniqueID])
@@ -212,24 +212,19 @@ for hotel in range(len(HotelsUrls)) :
     df = pd.DataFrame(list(zip(Names, Country,room_type, nuitee, reservation_date, traveler_infos, date_review, review_title, grade_review, positive_review, negative_review, usefulness_review, UniqueID)), columns=columns)
     df=df.assign(hotel= str(list(HotelsUrls.keys())[hotel]))
 
-    df.loc[(df.usefulness_review == 'Utile Pas utile'),'usefulness_review']='NaN'
+    df.loc[(df.usefulness_review == 'Utile Pas utile'),'usefulness_review']= np.nan
 
-    df['usefulness_review'] = df['usefulness_review'].str[:2]
-
-    for i in range(len(df)): 
-
-        if df['usefulness_review'][i] == "em":
-            df['usefulness_review'][i] = 0
-
-        if df['usefulness_review'][i] is None:
-            df['usefulness_review'][i] = 0
+    df['usefulness_review'] = str(df['usefulness_review']).str[:2]
 
     try:
         df = pd.concat([checkScrapping, df], ignore_index=True)
     except: 
         pass
 
+    # Supprimer les doublons (si jamais il en existe, normalement non)
     df.drop_duplicates(keep='first')
+    # Supprimer les lignes qui ont été récupérées en trop
+    df.drop(df[df['UniqueID'] == 'emptyemptyemptyemptyemptyemptyempty'].index, inplace = True)
 
     # Enregistrer le fichier à mettre
     df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\fichiers\Scrapping_' + str(list(HotelsUrls.keys())[hotel]) + '.csv', index = False, sep=';', encoding='utf-8')

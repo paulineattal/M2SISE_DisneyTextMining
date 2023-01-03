@@ -6,8 +6,57 @@ import pandas as pd
 from .side_bar import sidebar
 from datetime import datetime as dt
 import numpy as np
+import psycopg2
 
 dash.register_page(__name__, title='App1', order=1)
+
+# try:
+#     conn = psycopg2.connect(
+#           user = "m139",
+#           password = "m139",
+#           host = "db-etu.univ-lyon2.fr",
+#           port = "5432",
+#           database = "m139"
+#     )
+#     cur = conn.cursor()
+#     reservation = "SELECT * FROM reservation"
+#     client = "SELECT * FROM client"
+#     hotel = "SELECT * FROM hotel"
+#     room = "SELECT * FROM room"
+#     date = "SELECT * FROM date"
+
+#     cur.execute(reservation)
+#     reservation = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
+#     cur.execute(client)
+#     client = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
+#     cur.execute(hotel)
+#     hotel = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
+#     cur.execute(room)
+#     room = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
+#     cur.execute(date)
+#     date = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
+
+#     cur.close()
+#     conn.close()
+# except (Exception, psycopg2.Error) as error :
+#     print ("Erreur lors de la connexion à PostgreSQL", error)
+
+
+# hotel_room = hotel.merge(room, on="id_hotel")
+# res_client = reservation.merge(client, on="id_client")
+# res_client_date = res_client.merge(date, on="id_date")
+# df = res_client_date.merge(hotel_room, on="id_room")
+
+# conditionlist_hotel = [
+#     (df['hotel'] == "Disney's Newport Bay Club"),
+#     (df['hotel'] == "New_York")
+#     (df['hotel'] == "Sequoia_Lodge")
+#     (df['hotel'] == "Cheyenne")
+#     (df['hotel'] == "Santa_Fe")
+#     (df['hotel'] == "Davy_Crockett_Ranch")
+#     ]
+# choicelist_hotel = [6,5,4,3,2,1]
+# df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
 
 df = pd.read_csv('assets/df_clean_newport.csv',sep=';')
 
@@ -39,7 +88,7 @@ def sungraph(df):
 card_date=dbc.Card([
 
                         dbc.CardBody([
-                            html.H4("Sélectionner une période entre décembre 2019 et mars 2022",className="Card-text"),
+                            html.H4("Sélectionner une période",className="Card-text"),
                             dcc.DatePickerRange(
                             id='date-picker-range',
                             min_date_allowed=dt(2019,12,22),
@@ -52,8 +101,8 @@ card_date=dbc.Card([
                             )  
                             ])
                     ],
-                        color="white", #choix de la couleur
-                        inverse=False,
+                        color="secondary", #choix de la couleur
+                        inverse=True,
                         outline=False, #True enlève la couleur de la carte
                         style={'height':'100%'},
                         className="w-75",
@@ -62,22 +111,23 @@ card_date=dbc.Card([
 #Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
 card_filter_hotel=dbc.Card([
                         dbc.CardBody([
-                                html.H4("Sélectionner l'hôtel",className="Card-text"),
+                            html.H4("l'hôtel",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
-                                dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),  
+                                dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),
                             ]),
-                        ],
+                        ],       
                         color="secondary", #choix de la couleur
                         inverse=True,
                         outline=False, #True enlève la couleur de la carte
                         style={'height':'100%'},
                         className="w-75",
-                    )
+                        )
+
 
 card_filter_notes=dbc.Card([
                         dbc.CardBody([
-                                html.H4("Sélectionner le groupe selon les notes",className="Card-text"),
+                                html.H4("le groupe selon les notes",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner le groupe
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='notes-dropdown',options=notes_dict,value=3,style = {"color":"black"}),  
@@ -145,10 +195,10 @@ def layout():
     ),
     dbc.Row(
         [
-            dbc.Col(card_date,width=5),
-            dbc.Col(card_filter_hotel,width=4),
-            dbc.Col(card_filter_notes,width=3),
-            
+            #dbc.Col(card_date,width=5),
+            #dbc.Col(card_filter_hotel,width=4),
+            #dbc.Col(card_filter_notes,width=3),
+            dbc.CardGroup([card_date,card_filter_hotel,card_filter_notes])
         ]
     ),
     dbc.Row([],style={'height':'2vh'},),

@@ -54,6 +54,7 @@ for hotel in range(len(HotelsUrls)) :
     time.sleep(2)
 
     n_pages = driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text
+    time.sleep(1)
     n_pages = int(n_pages)
 
     check = 0
@@ -97,8 +98,8 @@ for hotel in range(len(HotelsUrls)) :
                     try:
                         len_reservation = driver.find_element(By.XPATH, len_reservation_path).text
                     except:
-                        len_reservation = np.nan
-                    collectLen_reservation.append(len_reservation[0])
+                        len_reservation = "N"
+                    collectLen_reservation.append(len_reservation)
 
                     # Mois année du voyage
                     month_year_path = '//*[@id="review_list_page_container"]/ul/li['+str(i)+']/div/div[2]/div[1]/ul[1]/li/div/span'
@@ -220,6 +221,9 @@ for hotel in range(len(HotelsUrls)) :
 
         if df['usefulness_review'][i] == "Na" or pd.isna(df['usefulness_review'][i]) :
             df['usefulness_review'][i] = "0"
+        
+        if df["nuitee"][i] == "N" : 
+            df["nuitee"][i] = np.nan
     
     if checkScrapping.columns[0] == '404: Not Found' : 
         pass
@@ -229,7 +233,7 @@ for hotel in range(len(HotelsUrls)) :
     # Supprimer les doublons (si jamais il en existe, normalement non)
     df.drop_duplicates(keep='first')
     # Supprimer les lignes qui ont été récupérées en trop
-    df.drop(df[df['UniqueID'] == 'emptyemptyemptyemptyemptyemptyempty'].index, inplace = True)
+    df.drop(df[df['UniqueID'] == 'nannannannannannannan'].index, inplace = True)
 
     # Enregistrer le fichier à mettre
     df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\fichiers\Scrapping_' + str(list(HotelsUrls.keys())[hotel]) + '.csv', index = False, sep=';', encoding='utf-8')

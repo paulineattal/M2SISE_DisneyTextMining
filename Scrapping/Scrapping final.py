@@ -195,6 +195,7 @@ for hotel in range(len(HotelsUrls)) :
 
     driver.close()
     
+    # Créer le dataframe
     Names = collectName
     Country = collectCountry
     room_type = collectType_room
@@ -209,12 +210,11 @@ for hotel in range(len(HotelsUrls)) :
     usefulness_review = collectIs_review_usefull
     UniqueID = collectUniqueID
     columns = ['Names', 'Country', 'room_type', 'nuitee', 'reservation_date', 'traveler_infos', 'date_review', 'review_title', 'grade_review', 'positive_review', 'negative_review', 'usefulness_review', 'UniqueID']
-
     df = pd.DataFrame(list(zip(Names, Country,room_type, nuitee, reservation_date, traveler_infos, date_review, review_title, grade_review, positive_review, negative_review, usefulness_review, UniqueID)), columns=columns)
     df=df.assign(hotel= str(list(HotelsUrls.keys())[hotel]))
-
+  
+    # Traitement de la ligne usefulness_review : Garder uniquement le nombre de fois que le commentaire a été trouvé utile
     df.loc[(df.usefulness_review == 'Utile Pas utile'),'usefulness_review']= 'NaN'
-
     df['usefulness_review'] = df['usefulness_review'].str[:2]
 
     for i in range(len(df)): 
@@ -224,16 +224,19 @@ for hotel in range(len(HotelsUrls)) :
         
         if df["nuitee"][i] == "N" : 
             df["nuitee"][i] = np.nan
-    
+
     if checkScrapping.columns[0] == '404: Not Found' : 
         pass
     else: 
         df = pd.concat([df, checkScrapping], ignore_index=True)
+
+    # Garder uniquement le nombre de nuitee passée dans l'hotel
+    df["nuitee"] = df["nuitee"].str[:1]
 
     # Supprimer les doublons (si jamais il en existe, normalement non)
     df.drop_duplicates(keep='first')
     # Supprimer les lignes qui ont été récupérées en trop
     df.drop(df[df['UniqueID'] == 'nannannannannannannan'].index, inplace = True)
 
-    # Enregistrer le fichier à mettre
+    # Enregistrer le fichier
     df.to_csv(r'C:\Users\houde\Documents\GitHub\Disney-Text-Mining\fichiers\Scrapping_' + str(list(HotelsUrls.keys())[hotel]) + '.csv', index = False, sep=';', encoding='utf-8')

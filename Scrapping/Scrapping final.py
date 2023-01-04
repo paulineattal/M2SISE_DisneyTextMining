@@ -1,5 +1,7 @@
 # Dependencies
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import time
@@ -16,7 +18,9 @@ chiffres = list("0123456789")
 
 for hotel in range(len(HotelsUrls)) : 
 
-    driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
 
     # Create list to get the data
     collectName = []
@@ -217,21 +221,19 @@ for hotel in range(len(HotelsUrls)) :
     df.loc[(df.usefulness_review == 'Utile Pas utile'),'usefulness_review']= 'NaN'
     df['usefulness_review'] = df['usefulness_review'].str[:2]
 
-    for i in range(len(df)): 
+    # Remplacer les cases ou il n'y a pas d'avis positif par 0
+    df.loc[df.usefulness_review == "Na", "usefulness_review"] = "0"
+    df.loc[pd.isna(df.usefulness_review), "usefulness_review"] = "0"
 
-        if df['usefulness_review'][i] == "Na" or pd.isna(df['usefulness_review'][i]) :
-            df['usefulness_review'][i] = "0"
-        
-        if df["nuitee"][i] == "N" : 
-            df["nuitee"][i] = np.nan
+    # Remplacer les nuitees non complétées par np.nan
+    df.loc[df.nuitee == "N", "nuitee"] = np.nan
+    # Garder uniquement le nombre de nuitee passée dans l'hotel
+    df["nuitee"] = df["nuitee"].str[:1]
 
     if checkScrapping.columns[0] == '404: Not Found' : 
         pass
     else: 
         df = pd.concat([df, checkScrapping], ignore_index=True)
-
-    # Garder uniquement le nombre de nuitee passée dans l'hotel
-    df["nuitee"] = df["nuitee"].str[:1]
 
     # Supprimer les doublons (si jamais il en existe, normalement non)
     df.drop_duplicates(keep='first')

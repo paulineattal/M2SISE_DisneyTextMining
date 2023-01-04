@@ -1,4 +1,7 @@
 Names;Country;room_type;nuitee;reservation_date;traveler_infos;date_review;review_title;grade_review;positive_review;negative_review;usefulness_review;UniqueID;hotel
+Anonyme;Pays-Bas;;1;Janvier 2023;Couple;Commentaire envoyé le 3 janvier 2023;Passable;5,0;;;0;AnonymePays-BasnanJanvier 2023CoupleCommentaire envoyé le 3 janvier 2023Passable;Santa_Fe
+Mara;Pays-Bas;Chambre Standard Cars;1;Janvier 2023;Famille;Commentaire envoyé le 3 janvier 2023;Fabuleux ;9,0;;;0;MaraPays-BasChambre Standard CarsJanvier 2023FamilleCommentaire envoyé le 3 janvier 2023Fabuleux ;Santa_Fe
+Ludovica;Italie;Chambre Standard Cars;2;Décembre 2022;Famille;Commentaire envoyé le 3 janvier 2023;Très bien;8,0;;;0;LudovicaItalieChambre Standard CarsDécembre 2022FamilleCommentaire envoyé le 3 janvier 2023Très bien;Santa_Fe
 Ludovica;Italie;Chambre Standard Cars;2;Décembre 2022;Famille;Commentaire envoyé le 3 janvier 2023;Très bien;8,0;;;0;LudovicaItalieChambre Standard CarsDécembre 2022FamilleCommentaire envoyé le 3 janvier 2023Très bien;Santa_Fe
 Ludovica;Italie;Chambre Standard Cars;2;Décembre 2022;Famille;Commentaire envoyé le 3 janvier 2023;Très bien;8,0;;;0;LudovicaItalieChambre Standard CarsDécembre 2022FamilleCommentaire envoyé le 3 janvier 2023Très bien;Santa_Fe
 Francesca;Italie;Chambre Standard Cars;1;Décembre 2022;Famille;Commentaire envoyé le 3 janvier 2023;Exceptionnel;10;;;0;FrancescaItalieChambre Standard CarsDécembre 2022FamilleCommentaire envoyé le 3 janvier 2023Exceptionnel;Santa_Fe

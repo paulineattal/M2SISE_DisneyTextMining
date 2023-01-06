@@ -230,6 +230,7 @@ for hotel in range(len(HotelsUrls)) :
     # Garder uniquement le nombre de nuitee passée dans l'hotel
     df["nuitee"] = df["nuitee"].str[:1]
 
+    #### Nettoyage ####
     if checkScrapping.columns[0] == '404: Not Found' : 
         pass
     else: 

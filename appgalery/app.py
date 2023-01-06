@@ -6,7 +6,6 @@ import gunicorn
 import base64
 import io
 #matplotlib==3.2.2
-
 app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server=app.server
 

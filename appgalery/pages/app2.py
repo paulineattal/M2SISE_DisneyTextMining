@@ -9,7 +9,7 @@ import numpy as np
 import sklearn
 import nltk
 import string
-#nltk.download('wordnet')
+nltk.download('all')
 from nltk.stem import WordNetLemmatizer
 #pour la tokénisation
 from nltk.tokenize import word_tokenize

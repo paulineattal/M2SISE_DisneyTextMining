@@ -1,7 +1,7 @@
-﻿hotel;id_hotel
-Cheyenne;d1c15602-b86b-4eff-bfb7-46bb7dd0dc1d
-Davy_Crockett_Ranch;806fd917-24c9-44b2-990b-6973cee9c360
-Newport_Bay_Club;d00da4f6-b100-4cc5-bac5-c8508c4bc35a
-New_York;3ffc5124-69d7-48d5-bbdc-b854776c5ab7
-Santa_Fe;1a1ab6bb-4734-4446-b63f-28c530db7f8b
-Sequoia_Lodge;ab287e48-2017-4844-bbf2-d304cdc28d90
+﻿hotel;level_hotel;id_hotel
+Cheyenne;3;b3fd4c1c-48f8-40c3-aaf8-436b772a4ff6
+Davy_Crockett_Ranch;1;b1c5075b-b610-43fd-b500-b602a2011494
+Newport_Bay_Club;6;f45e1fb4-b662-45be-a7ff-db2e5acab87e
+New_York;5;b151572c-ff46-448b-b4a3-e1db98495ef1
+Santa_Fe;2;d552ebba-4bc2-40d8-9530-60a82d18f258
+Sequoia_Lodge;4;2ec40eeb-040c-4277-b30a-277dd4df2202

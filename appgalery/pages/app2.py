@@ -9,7 +9,7 @@ import numpy as np
 import sklearn
 import nltk
 import string
-#nltk.download('all')
+#nltk.download('stopwords')
 from nltk.stem import WordNetLemmatizer
 #pour la tokénisation
 from nltk.tokenize import word_tokenize

@@ -9,7 +9,7 @@ import numpy as np
 import sklearn
 import nltk
 import string
-#nltk.download('stopwords')
+#nltk.download('wordnet')
 from nltk.stem import WordNetLemmatizer
 #pour la tokénisation
 from nltk.tokenize import word_tokenize
@@ -130,18 +130,25 @@ def word_cloud(df,champ):
     # #fig, ax=plt.subplots()
     nuage=WordCloud(background_color="white").generate(final_text) 
     plt.figure(figsize=(5, 5))
-    # ##ax.imshow(nuage,interpolation='bilinear')
-    # ##ax.axis("off")
     plt.imshow(nuage,interpolation='bilinear')
     plt.axis("off")
     plt.margins(0,0)
     if champ=='positive_review':
-        return(plt.savefig("./assets/wordpos.png", bbox_inches = 'tight', pad_inches = 0))
+        plt.savefig("./assets/wordpos.png", bbox_inches = 'tight', pad_inches = 0)
+        image_path=r'assets/wordpos.png'
     else :
-        return(plt.savefig("./assets/wordneg.png", bbox_inches = 'tight', pad_inches = 0))
-    # ##html_matplotlib=mpld3.fig_to_html(fig)
-    # ##return(html_matplotlib)
-    #return final_text[0:10]
+        plt.savefig("./assets/wordneg.png", bbox_inches = 'tight', pad_inches = 0)
+        image_path=r'assets/wordneg.png'
+    return(image_path)
+
+def count_avis(df,champ):
+    df_new=df[champ].reset_index(drop=True)
+    l=[]
+    for i in range(len(df_new)-1):
+        if (df_new[i]=='NaN')==True:
+        #if isinstance(df_new[i], float)==True:
+            l.append(i)
+    return(len(l))
 
 #----------------définition des cartes-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------
@@ -251,10 +258,7 @@ card_positifs=dbc.Card([
                     dbc.CardBody([
                         html.H4("Avis positifs",className="Card-text"),
                         #affichage word cloud
-                        #html.Div(id='fig_avis_positifs'),
-                        html.Img(id='fig_avis_positifs',src=r'assets/wordpos.png', alt='image'),
-                        #html.Iframe(id = 'fig_avis_positifs',srcDoc=None,height=520,width=650)
-                        #srcDoc=None pour positionner le graphique que l'on va construire
+                        html.Img(id='fig_avis_positifs')
                         ])
                     ],
                     color="light",
@@ -268,8 +272,7 @@ card_positifs=dbc.Card([
 card_negatifs=dbc.Card([
                     dbc.CardBody([
                         html.H4("Avis négatifs",className="Card-text"),
-                        html.Img(id='fig_avis_negatifs',src=r'assets/wordneg.png', alt='image'),
-                        #html.Iframe(id = 'fig_avis_negatifs',srcDoc=None,height=520,width=650)
+                        html.Img(id='fig_avis_negatifs')
                         ])
                     ],
                     color="light",
@@ -330,8 +333,8 @@ def layout():
     Output(component_id='top_pays',component_property='srcDoc'),
     Output(component_id='pourcentage_avis_positifs',component_property='children'),
     Output(component_id='pourcentage_avis_negatifs',component_property='children'),
-    Output(component_id='fig_avis_positifs',component_property='srcSet'),
-    Output(component_id='fig_avis_negatifs',component_property='srcSet'),
+    Output(component_id='fig_avis_positifs',component_property='src'),
+    Output(component_id='fig_avis_negatifs',component_property='src'),
     #les variables qui feront évoler les outputs (indices, graphiques,...) ci-dessus
     Input(component_id='hotel-dropdown',component_property='value'),
     Input(component_id='notes-dropdown',component_property='value'),
@@ -346,19 +349,32 @@ def update_output(decision_hotel,choix_groupe,start_date,end_date):
         df_select=dff[dff.level_hotel==decision_hotel]
     else:
         df_select=dff[(dff.level_hotel==decision_hotel) & (dff.level_grade_review==choix_groupe)]
-     
-    titres=df_select[~df_select.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
-    pays=df_select.country.value_counts().reset_index().head(5)
+    
     if len(df_select)==0:
         percentplus=0
         percentmoins=0
+        titres=pd.DataFrame([{'index': 'Néant', 'review_title': 0}])
+        pays=pd.DataFrame([{'index':'Néant','country':0}])
+        avisplus=r'assets/closed.png'
+        avismoins=r'assets/closed.png'
+        encoded_image_avisplus = base64.b64encode(open(avisplus, 'rb').read())
+        encoded_image_avismoins = base64.b64encode(open(avismoins, 'rb').read())
     else :
-        percentplus=round((1-df_select.positive_review.isnull().sum()/len(df_select))*100,3)
-        percentmoins=round((1-df_select.negative_review.isnull().sum()/len(df_select))*100,3)
-    avisplus=word_cloud(df_select,'positive_review')
-    avismoins=word_cloud(df_select,'negative_review') 
+        titres=df_select[~df_select.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
+        pays=df_select.country.value_counts().reset_index().head(5)
+        nplus=count_avis(df_select,'positive_review')
+        nmoins=count_avis(df_select,'negative_review')
+        percentplus=round((1-nplus/len(df_select))*100,3)
+        percentmoins=round((1-nmoins/len(df_select))*100,3)
+        #percentplus=round((1-df_select.positive_review.isnull().sum()/len(df_select))*100,3)
+        avisplus=word_cloud(df_select,'positive_review')
+        avismoins=word_cloud(df_select,'negative_review') 
+        encoded_image_avisplus = base64.b64encode(open(avisplus, 'rb').read())
+        encoded_image_avismoins = base64.b64encode(open(avismoins, 'rb').read())
+
     titres=titres.rename(columns={"index": "Titres", "review_title": "Effectifs"})
     titres = titres.style.set_properties(**{'color': 'white','font-size': '20pt',})
-    pays=pays.rename(columns={"index": "Pays", "Country": "Effectifs"})
+    pays=pays.rename(columns={"index": "Pays", "country": "Effectifs"})
     pays = pays.style.set_properties(**{'color': 'white','font-size': '20pt',})
-    return titres.to_html(index=False,header=False),pays.to_html(index=False,header=False),percentplus,percentmoins,avisplus,avismoins
+    return titres.to_html(index=False,header=False),pays.to_html(index=False,header=False),percentplus,percentmoins,'data:image/png;base64,{}'.format(encoded_image_avisplus.decode()),'data:image/png;base64,{}'.format(encoded_image_avismoins.decode())
+    

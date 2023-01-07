@@ -9,12 +9,13 @@ from datetime import datetime as dt
 import numpy as np
 import psycopg2
 
-#On donne un titre pour cette application 'App1'
-# En seconde position dans la barre de naviation car order =1
+#on donne un titre pour cette application 'App1'
+#en seconde position dans la barre de naviation car order =1
 dash.register_page(__name__, title='App1', order=1)
 
 #importation de la BDD sur Postgrey à partir d'une connexion
 try:
+    #créer la connexion à la Base De Données
     conn = psycopg2.connect(
           user = "m139",
           password = "m139",
@@ -23,15 +24,19 @@ try:
           database = "m139"
     )
     
+    #conn.cursor() pour créer un objet curseur Psycopg2. 
+    #cette méthode crée un nouvel objet psycopg2.extensions.cursor.
     cur = conn.cursor()
     #sélection des champs à partir des diverses tables : reservation, client, hotel, room, date
     reservation = "SELECT * FROM reservation"
-    client = "SELECT * FROM client"
+    client = "SELECT id_client, nuitee FROM client"
     hotel = "SELECT * FROM hotel"
     room = "SELECT * FROM room"
     date = "SELECT * FROM date"
 
+    #exécuter requête de sélection avec cur.execute()
     cur.execute(reservation)
+    #fetchall() pour tout extraire
     reservation = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
     cur.execute(client)
     client = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
@@ -42,7 +47,9 @@ try:
     cur.execute(date)
     date = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
 
+    #fermer curseur
     cur.close()
+    #fermer page de connexion
     conn.close()
 except (Exception, psycopg2.Error) as error :
     print ("Erreur lors de la connexion à PostgreSQL", error)
@@ -61,7 +68,7 @@ df['date']=pd.to_datetime(df['date'])
 #on détermine la date la plus ancienne 
 min=df.date.min()
 #et celle la plus récente
-#Elles permettront de réactualiser aisément la  sélection dans le calendrier
+#elles permettront de réactualiser aisément la  sélection dans le calendrier
 max=df.date.max()
 #on met les dates en index pour la sélection ensuite avec le picker range et les inputs
 df.set_index('date',inplace=True)
@@ -134,7 +141,6 @@ card_filter_hotel=dbc.Card([
                         style={'height':'100%'},
                         className="w-75",
                         )
-
 
 card_filter_notes=dbc.Card([
                         dbc.CardBody([

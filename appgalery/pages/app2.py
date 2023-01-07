@@ -34,10 +34,10 @@ try:
     )
     cur = conn.cursor()
     reservation = "SELECT * FROM reservation"
-    client = "SELECT * FROM client"
+    client = "SELECT id_client, country, review_title, positive_review, negative_review FROM client"
     hotel = "SELECT * FROM hotel"
     room = "SELECT * FROM room"
-    date = "SELECT * FROM date"
+    date = "SELECT id_date, date FROM date"
 
     cur.execute(reservation)
     reservation = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])

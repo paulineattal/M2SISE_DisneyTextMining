@@ -375,24 +375,27 @@ def update_output(decision_hotel,choix_groupe,choix_cluster,start_date,end_date)
     else:
         df_select=dff[(dff.level_hotel==decision_hotel) & (dff.level_grade_review==choix_groupe)]
     
-    if df_select.shape[0]==0 :
+    if len(df_select)==0 :
         percentdelai=0
         moyennedelai=0
+        sejour=pd.DataFrame([{'id_client': 'Néant', 'grade_review': 0}])
+        cap={}
+        can={}
     else :
-        percentdelai=round(len(df_select[df_select.delay_comment>=2])*100/df_select.shape[0],3)
+        percentdelai=round(len(df_select[df_select.delay_comment>=2])*100/len(df_select),3)
         moyennedelai=round(df_select[df_select.delay_comment>=2]['grade_review'].mean(),3)
 
-    d1=df_select.groupby(['traveler_infos'])[['id_client','country']].count()*100/df_select.shape[0]
-    d2=df_select.groupby(['traveler_infos'])[['grade_review','nuitee']].mean()
-    df_sejour=pd.merge(d1,d2,on='traveler_infos')
-    var=['id_client','grade_review']
-    sejour=df_sejour[var]
-    sejour=round(sejour,3)
+        d1=df_select.groupby(['traveler_infos'])[['id_client','country']].count()*100/len(df_select)
+        d2=df_select.groupby(['traveler_infos'])[['grade_review','nuitee']].mean()
+        df_sejour=pd.merge(d1,d2,on='traveler_infos')
+        var=['id_client','grade_review']
+        sejour=df_sejour[var]
+        corpusplus=creation_corpus_liste(df_select,'positive_review')
+        corpusneg=creation_corpus_liste(df_select,'negative_review')
+        cap=clusters(corpusplus,choix_cluster,'positive_review')
+        can=clusters(corpusneg,choix_cluster,'negative_review')
     sejour=sejour.rename(columns={"id_client": "pourcentages","grade_review":"moyenne"})
-    corpusplus=creation_corpus_liste(df_select,'positive_review')
-    corpusneg=creation_corpus_liste(df_select,'negative_review')
-    cap=clusters(corpusplus,choix_cluster,'positive_review')
-    can=clusters(corpusneg,choix_cluster,'negative_review')
     sejour = sejour.style.set_properties(**{'color': 'white','font-size': '20pt',})
     sejour=sejour.format(precision=3)
+    
     return percentdelai,moyennedelai,sejour.to_html(index=False,header=True),cap,can

@@ -1,7 +1,19 @@
+# Dependencies
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import psycopg2
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+import time
+import requests
+import io
+import numpy as np
+import pandas as pd
+import scrapping_final as sf
 
 # Propriétés du DAG
 
@@ -41,7 +53,11 @@ def scrapping():
     ### Ajouter le code pour récupérer la database pour chaque hotel
 
     ### Ajouter le code du scrapping
+    HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
+    chiffres = list("0123456789")
 
+    for hotel in range(len(HotelsUrls)) : 
+        sf.scrapping_hotel(hotel)
     ### Ajouter le code pour insérer le scrapping dans la database
 
 

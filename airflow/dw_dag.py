@@ -5,7 +5,8 @@ import psycopg2
 import pandas as pd
 import uuid
 import functions as fct
-
+from datetime import datetime, timedelta
+from clean_dag import dag_clean
 
 default_args = {
     'owner' : "Text-Mining_Project",
@@ -126,53 +127,46 @@ def alimente_dw(**kwargs):
     client = kwargs['dag_run'].dag.df_client
     reservation = kwargs['dag_run'].dag.df_res
 
-   fct.insert_values(conn, date, 'date')
-   fct.insert_values(conn, hotel, 'hotel')
-   fct.insert_values(conn, room, 'room')
-   fct.insert_values(conn, client, 'client')
-   fct.insert_values(conn, reservation, 'reservation')
+    fct.insert_values(conn, date, 'date')
+    fct.insert_values(conn, hotel, 'hotel')
+    fct.insert_values(conn, room, 'room')
+    fct.insert_values(conn, client, 'client')
+    fct.insert_values(conn, reservation, 'reservation')
 
 
-dag = MyDAG(
-    'dw',
-    default_args = default_args,
-    # Executer tous les jours à minuit
-    schedule_interval = '0 0 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
-)
+with MyDag( 'dw' ,default_args = default_args, schedule_interval = '0 0 * * *') as dag_dw:
 
+    # Tâche Airflow    
+    create_table_date_task = PythonOperator(
+        task_id = 'create_table_date',
+        python_callable = create_table_date,
+        dag = dag_dw)
 
+    create_table_client_task = PythonOperator(
+        task_id = 'create_table_client',
+        python_callable = create_table_client,
+        dag = dag_dw)
 
-# Tâche Airflow    
-create_table_date_task = PythonOperator(
-    task_id = 'create_table_date',
-    python_callable = create_table_date,
-    dag = dag)
+    create_table_hotel_task = PythonOperator(
+        task_id = 'create_table_hotel',
+        python_callable = create_table_hotel,
+        dag = dag_dw)
 
-create_table_client_task = PythonOperator(
-    task_id = 'create_table_client',
-    python_callable = create_table_client,
-    dag = dag)
+    create_table_chambre_task = PythonOperator(
+        task_id = 'create_table_chambre',
+        python_callable = create_table_chambre,
+        dag = dag_dw)
 
-create_table_hotel_task = PythonOperator(
-    task_id = 'create_table_hotel',
-    python_callable = create_table_hotel,
-    dag = dag)
+    create_table_reservation_task = PythonOperator(
+        task_id = 'create_table_reservation',
+        python_callable = create_table_reservation,
+        dag = dag_dw)
 
-create_table_chambre_task = PythonOperator(
-    task_id = 'create_table_chambre',
-    python_callable = create_table_chambre,
-    dag = dag)
+    alimente_dw_task = PythonOperator(
+        task_id = 'alimente_dw',
+        python_callable = alimente_dw,
+        dag = dag_dw)
 
-create_table_reservation_task = PythonOperator(
-    task_id = 'create_table_reservation',
-    python_callable = create_table_reservation,
-    dag = dag)
+# create_table_date_task >> create_table_client_task >> create_table_hotel_task >> create_table_chambre_task >> create_table_reservation_task >> alimente_dw
 
-alimente_dw_task = PythonOperator(
-    task_id = 'alimente_dw',
-    python_callable = alimente_dw,
-    dag = dag)
-
-create_table_date_task >> create_table_client_task >> create_table_hotel_task >> create_table_chambre_task >> create_table_reservation_task >> alimente_dw
-
-clean_dag.set_upstream(dw_dag)
+# dag_clean.set_upstream(dag_dw)

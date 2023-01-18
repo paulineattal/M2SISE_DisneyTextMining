@@ -42,7 +42,7 @@ path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
 
 
 def scrapping():
-
+    print("Scrapping Init")
     try:
         conn = psycopg2.connect(
             user = "m140",
@@ -85,6 +85,7 @@ def scrapping():
     except (Exception, psycopg2.Error) as error :
         print ("Erreur lors de la connexion à PostgreSQL", error)
 
+    print("Connexion BDD OK")
 
     for hotel in range(len(HotelsUrls)) : 
         df = fct.scrapping_hotel(hotel, history)
@@ -94,13 +95,16 @@ def scrapping():
         except:
             new_df = df
 
+        print(hotel + " terminé")
         # Enregistrer le fichier
-        try:
-            new_df.to_csv(path+'scrapping_total.csv', index = False, sep=';', encoding='utf-8')
-        except : 
-            pass
+    try:
+        new_df.to_csv(path+'scrapping_total.csv', index = False, sep=';', encoding='utf-8')
+    except : 
+        pass
 
+    print("Scrapping terminé")
     fct.insert_values(conn, new_df, 'history')
+    print("Insert in BDD terminé")
 
 
 ## Tâche Airflow    

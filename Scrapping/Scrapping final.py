@@ -9,7 +9,7 @@ import requests
 import io
 import numpy as np
 import pandas as pd
-
+from pyvirtualdisplay import Display
 # Get the driver
 
 def scrapping_hotel():
@@ -66,7 +66,7 @@ def scrapping_hotel():
 
         for p in range(1,n_pages+1):
             time.sleep(2)
-
+            print(p)
             if check == 0:
 
                 for i in range(1,11):

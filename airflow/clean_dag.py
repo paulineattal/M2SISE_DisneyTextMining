@@ -4,10 +4,11 @@ from airflow.operators.python import PythonOperator
 import psycopg2
 import numpy as np
 import pandas as pd
-from datetime import datetime as dt
+from datetime import datetime, timedelta
 from dateutil import parser
+import functions as fct
 
-
+path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
 
 default_args = {
     'owner' : "Text-Mining_Project",
@@ -158,40 +159,34 @@ def save_clean_file(**kwargs):
 
 
 
-dag = MyDAG(
-    'dw',
-    default_args = default_args,
-    # Executer tous les jours à minuit
-    schedule_interval = '0 0 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
-)
+with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * * *') as dag_clean:
+    
+    clean_date_ajout_task = PythonOperator(
+        task_id = 'clean_date_ajout',
+        python_callable = clean_date_ajout,
+        dag = dag_clean)
 
+    ajout_levels_task = PythonOperator(
+        task_id = 'ajout_levels',
+        python_callable = ajout_levels,
+        dag = dag_clean)
+
+    recodage_type_task = PythonOperator(
+        task_id = 'recodage_type',
+        python_callable = recodage_type,
+        dag = dag_clean)
+
+    add_date_task = PythonOperator(
+        task_id = 'add_date',
+        python_callable = add_date,
+        dag = dag_clean)
+
+    save_clean_file_task = PythonOperator(
+        task_id = 'save_clean_file',
+        python_callable = save_clean_file,
+        dag = dag_clean)
 
 # Tâche Airflow    
-clean_date_ajout_task = PythonOperator(
-    task_id = 'clean_date_ajout',
-    python_callable = clean_date_ajout,
-    dag = dag)
 
-ajout_levels_task = PythonOperator(
-    task_id = 'ajout_levels',
-    python_callable = ajout_levels,
-    dag = dag)
 
-recodage_type_task = PythonOperator(
-    task_id = 'recodage_type',
-    python_callable = recodage_type,
-    dag = dag)
-
-add_date_task = PythonOperator(
-    task_id = 'add_date',
-    python_callable = add_date,
-    dag = dag)
-
-save_clean_file_task = PythonOperator(
-    task_id = 'save_clean_file',
-    python_callable = save_clean_file,
-    dag = dag)
-
-clean_date_ajout_task >> ajout_levels_task >> recodage_type_task >> add_date_task >> save_clean_file
-
-execute_scrapping_dag >> clean_dag 
+# clean_date_ajout_task >> ajout_levels_task >> recodage_type_task >> add_date_task >> save_clean_file

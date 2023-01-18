@@ -19,27 +19,6 @@ import psycopg2.extras as extras
 # Propriétés du DAG
 path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
 
-default_args = {
-    'owner' : "Text-Mining_Project",
-    
-    # Lancer le DAG chaque jour
-    'start_date' : datetime(2023, 1, 17),
-    'depends_on_past' : False,
-
-    # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
-    'retries' : 1,
-    'retry_delay' : timedelta(minutes=5)
-}
-
-dag = DAG(
-    'scrapping',
-    default_args = default_args,
-
-    # Executer tous les jours à minuit
-    schedule_interval = '0 0 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
-)
-
-
 def scrapping():
 
     try:
@@ -105,11 +84,20 @@ def scrapping():
 
     fct.insert_values(conn, new_df, 'history')
 
+default_args = {
+    'owner' : "Text-Mining_Project",
+    
+    # Lancer le DAG chaque jour
+    'start_date' : datetime(2023, 1, 17),
+    'depends_on_past' : False,
 
-# Tâche Airflow    
-scrapping_task = PythonOperator(
-    task_id = 'scrapping',
-    python_callable = scrapping,
-    dag = dag)
+    # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
+    'retries' : 1,
+    'retry_delay' : timedelta(minutes=5)
+}
 
-scrapping_task
+with DAG('scrapping', default_args = default_args, schedule_interval = '0 0 * * *') as dag: 
+    scrapping_task = PythonOperator(
+        task_id = 'scrapping',
+        python_callable = scrapping,
+        dag = dag)

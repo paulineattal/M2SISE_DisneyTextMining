@@ -12,11 +12,11 @@ layout = html.Div([
     dcc.Markdown('# Web Scraping', style={'textAlign':'center'}),
     dcc.Markdown('Booking', style={'textAlign': 'center'}),
 
-    dcc.Markdown('### Summary', style={'textAlign': 'center'}),
+    dcc.Markdown('### Résumé', style={'textAlign': 'center'}),
     #pour insérer un espace
     html.Hr(),
     dcc.Markdown('Projet du Master SISE concernant le web scrapping de booking. \n'
-                 'Pour chaque projet (App1, App2, App3), Trois champs peuvent être modifiés : Dates, Hôtel, groupe selon la note.\n'
+                 'Pour chaque projet (Projet 1, Projet 2, Projet 3), Trois champs peuvent être modifiés : Dates, Hôtel, groupe selon la note.\n'
                  'vous devez resélectionner vos choix pour chaque projet',
                  style={'textAlign': 'center', 'white-space': 'pre'}),
 
@@ -32,7 +32,7 @@ layout = html.Div([
         dbc.Col([
             dbc.Row([
                 dbc.Col([
-                    dcc.Markdown('App 1', style={'textAlign': 'center'})
+                    dcc.Markdown('Projet 1', style={'textAlign': 'center'})
                 ], width=2),
                 dbc.Col([
                     dcc.Markdown('Renvoi un premier résumé comprenant',
@@ -50,7 +50,7 @@ layout = html.Div([
 
             dbc.Row([
                 dbc.Col([
-                    dcc.Markdown('App 2',
+                    dcc.Markdown('Projet 2',
                                 style={'textAlign': 'center'})
                 ], width=2),
                 dbc.Col([
@@ -69,7 +69,7 @@ layout = html.Div([
 
             dbc.Row([
                 dbc.Col([
-                    dcc.Markdown('App 3',
+                    dcc.Markdown('Projet 3',
                                 style={'textAlign': 'center'})
                 ], width=2),
                 dbc.Col([

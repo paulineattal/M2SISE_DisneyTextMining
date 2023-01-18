@@ -128,7 +128,7 @@ card_date=dbc.Card([
 #Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
 card_filter_hotel=dbc.Card([
                         dbc.CardBody([
-                            html.H4("l'hôtel",className="Card-text"),
+                            html.H4("un hôtel",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),
@@ -143,7 +143,7 @@ card_filter_hotel=dbc.Card([
 
 card_filter_notes=dbc.Card([
                         dbc.CardBody([
-                                html.H4("le groupe selon les notes",className="Card-text"),
+                                html.H4("un groupe de clients (notes)",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner le groupe
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='notes-dropdown',options=notes_dict,value=3,style = {"color":"black"}),  

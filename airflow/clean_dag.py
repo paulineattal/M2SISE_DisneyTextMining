@@ -188,5 +188,7 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
 
 # Tâche Airflow    
 
-
-# clean_date_ajout_task >> ajout_levels_task >> recodage_type_task >> add_date_task >> save_clean_file
+clean_date_ajout_task.set_downstream(ajout_levels_task)
+ajout_levels_task.set_downstream(recodage_type_task)
+recodage_type_task.set_downstream(add_date_task)
+add_date_task.set_downstream(save_clean_file_task)

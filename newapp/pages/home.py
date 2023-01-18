@@ -16,7 +16,9 @@ layout = html.Div([
     #pour insérer un espace
     html.Hr(),
     dcc.Markdown('Projet du Master SISE concernant le web scrapping de booking. \n'
-                 'Pour chaque projet (Projet 1, Projet 2, Projet 3), Trois champs peuvent être modifiés : Dates, Hôtel, groupe selon la note.\n'
+                 'Pour chaque projet (Projet 1, Projet 2, Projet 3), trois champs peuvent être modifiés :\n'
+                 "la période, l'hôtel, le groupe de clients selon la note attribuée (clients promoteurs, passifs, détracteurs).\n"
+                 'et le cluster (numéro 1, 2 ou 3) pour le dernier projet uniquement\n'
                  'vous devez resélectionner vos choix pour chaque projet',
                  style={'textAlign': 'center', 'white-space': 'pre'}),
 

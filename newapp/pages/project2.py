@@ -86,7 +86,7 @@ def nettoyage_doc(doc_param):
     #liste des chiffres
     chiffres = list("0123456789")
     #liste de mots spécifiques à retirer
-    special=["parc","disneyland","disney","paris","hôtel","lhôtel","😡😡😡😡😡😡","😡😡😡😡😡je","🤣🤣👍👍👍","très","trop","plus","avon"]
+    special=["parc","disneyland","disney","paris","hôtel","lhôtel","😡😡😡😡😡😡","😡😡😡😡😡je","🤣🤣👍👍👍","très","trop","plus","avon","marvel","fait","déjà","donc","après","cest","alors","vraiment","quand","avant","toute","cela","contre","faire","dont","aller","comme","avoir"]
     #outil pour procéder à la lemmatisation - attention à charger le cas échéant
     lem = WordNetLemmatizer()
     #liste des mots vides
@@ -112,26 +112,35 @@ def nettoyage_doc(doc_param):
     return doc
 
 def word_cloud(df,champ):
+    #réinitialiser l'index des données
     df_cloud=df[champ].reset_index(drop=True)
     l=[]
+    #recherche des indices où il n'y a pas de commentaires (en lien avec champ)
     for i in range(len(df_cloud)-1):
         if isinstance(df_cloud[i], float)==True:
             l.append(i)
+    #supprime les lignes sans commentaires
     df_cloud=df_cloud.drop(df_cloud.index[l])
     df_cloud=df_cloud.reset_index()
+    #nettoyage du corpus
     corpus_liste=[]
     for i in range(df_cloud.shape[0]-1):
         corpus_liste.append(nettoyage_doc(df_cloud.iloc[i,1]))
+    #texte final comprenant une seule ligne avec tous les mots issus des commentaires "nettoyés"
     str_text=[]
     for i in range(len(corpus_liste)):
         str_text.append(' '.join(corpus_liste[i]))
     final_text=' '.join(str_text)
-    # #fig, ax=plt.subplots()
+    #création du nuage de ces mots
     nuage=WordCloud(background_color="white").generate(final_text) 
     plt.figure(figsize=(5, 5))
+    #affichage des données sous forme d'images
     plt.imshow(nuage,interpolation='bilinear')
+    #sans axes
     plt.axis("off")
+    #marges
     plt.margins(0,0)
+    #retour du nuage de mots correspondant à la sélection du champ
     if champ=='positive_review':
         plt.savefig("./assets/wordpos.png", bbox_inches = 'tight', pad_inches = 0)
         image_path=r'assets/wordpos.png'
@@ -179,7 +188,7 @@ card_date=dbc.Card([
 #Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
 card_filter_hotel=dbc.Card([
                         dbc.CardBody([
-                                html.H4("l'hôtel",className="Card-text"),
+                                html.H4("un hôtel",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),  
@@ -195,7 +204,7 @@ card_filter_hotel=dbc.Card([
 
 card_filter_notes=dbc.Card([
                         dbc.CardBody([
-                                html.H4("le groupe selon les notes",className="Card-text"),
+                                html.H4("un groupe de clients (notes)",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner le groupe
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='notes-dropdown',options=notes_dict,value=3,style = {"color":"black"}),  
@@ -356,7 +365,6 @@ def update_output(decision_hotel,choix_groupe,start_date,end_date):
         nmoins=count_avis(df_select,'negative_review')
         percentplus=round((1-nplus/len(df_select))*100,3)
         percentmoins=round((1-nmoins/len(df_select))*100,3)
-        #percentplus=round((1-df_select.positive_review.isnull().sum()/len(df_select))*100,3)
         avisplus=word_cloud(df_select,'positive_review')
         avismoins=word_cloud(df_select,'negative_review') 
         encoded_image_avisplus = base64.b64encode(open(avisplus, 'rb').read())

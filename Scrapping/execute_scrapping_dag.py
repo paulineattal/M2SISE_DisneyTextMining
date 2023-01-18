@@ -14,30 +14,31 @@ import io
 import numpy as np
 import pandas as pd
 import functions as fct
+from functions import HotelsUrls
 import psycopg2.extras as extras
 
 # Propriétés du DAG
 path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
 
-default_args = {
-    'owner' : "Text-Mining_Project",
+# default_args = {
+#     'owner' : "Text-Mining_Project",
     
-    # Lancer le DAG chaque jour
-    'start_date' : datetime(2023, 1, 17),
-    'depends_on_past' : False,
+#     # Lancer le DAG chaque jour
+#     'start_date' : datetime(2023, 1, 17),
+#     'depends_on_past' : False,
 
-    # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
-    'retries' : 1,
-    'retry_delay' : timedelta(minutes=5)
-}
+#     # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
+#     'retries' : 1,
+#     'retry_delay' : timedelta(minutes=5)
+# }
 
-dag = DAG(
-    'scrapping',
-    default_args = default_args,
+# dag = DAG(
+#     'scrapping',
+#     default_args = default_args,
 
-    # Executer tous les jours à minuit
-    schedule_interval = '0 0 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
-)
+#     # Executer tous les jours à minuit
+#     schedule_interval = '0 0 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
+# )
 
 
 def scrapping():
@@ -85,10 +86,6 @@ def scrapping():
         print ("Erreur lors de la connexion à PostgreSQL", error)
 
 
-    ### Ajouter le code du scrapping
-    HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
-    chiffres = list("0123456789")
-
     for hotel in range(len(HotelsUrls)) : 
         df = fct.scrapping_hotel(hotel, history)
 
@@ -106,10 +103,12 @@ def scrapping():
     fct.insert_values(conn, new_df, 'history')
 
 
-# Tâche Airflow    
-scrapping_task = PythonOperator(
-    task_id = 'scrapping',
-    python_callable = scrapping,
-    dag = dag)
+## Tâche Airflow    
+# scrapping_task = PythonOperator(
+#     task_id = 'scrapping',
+#     python_callable = scrapping,
+#     dag = dag)
 
-scrapping_task
+# scrapping_task
+
+scrapping()

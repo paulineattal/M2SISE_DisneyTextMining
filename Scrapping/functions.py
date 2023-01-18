@@ -9,8 +9,12 @@ import requests
 import io
 import numpy as np
 import pandas as pd
+import psycopg2
+import psycopg2.extras as extras
 
 # Get the driver
+HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
+chiffres = list("0123456789")
 
 def scrapping_hotel(hotel, history):
 
@@ -45,9 +49,8 @@ def scrapping_hotel(hotel, history):
         driver.find_element(By.XPATH, '//*[@id="review_sort"]/option[2]').click()
         time.sleep(2)
 
-        n_pages = driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text
+        n_pages = int(driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text)
         time.sleep(1)
-        n_pages = int(n_pages)
 
         check = 0
 

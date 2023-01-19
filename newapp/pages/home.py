@@ -28,7 +28,7 @@ layout = html.Div([
     dbc.Row([
         dbc.Col([
             #insertion de l'image dans cette colonne
-            html.Img(src='assets/castle.jpg')
+            html.Img(src='assets/castle.png')
             ],width=2), 
         #la seconde colonne est divisée en plusieurs lignes
         dbc.Col([
@@ -40,13 +40,15 @@ layout = html.Div([
                     dcc.Markdown('Renvoi un premier résumé comprenant',
                                 style={'white-space': 'pre'},
                                 className='ms-3'),
-                    #correspondent aux tirets
+                    #création d'une liste (qui correspond aux différents items) 
                     html.Ul([
+                        #texte dans le première liste
                         html.Li('La moyenne des notes'),
                         html.Li('Le pourcentage du groupe sélectionné'),
                         html.Li('Un graphique avec, par mois et année,'),
                         html.Li('le nombre de nuit et la moyenne des notes')
                     ])
+                #largeur de la colonne
                 ], width=5)
             ], justify='center'),
 

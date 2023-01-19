@@ -8,7 +8,7 @@ from datetime import datetime as dt
 import numpy as np
 import psycopg2
 
-#on donne un titre pour cette application 'App1'
+#Le titre de cette page sera project1 dans la barre de naviation (nom du fichier.py)
 #en seconde position dans la barre de naviation car order =1
 dash.register_page(__name__, order=1)
 
@@ -69,7 +69,8 @@ min=df.date.min()
 #et celle la plus récente
 #elles permettront de réactualiser aisément la  sélection dans le calendrier
 max=df.date.max()
-#on met les dates en index pour la sélection ensuite avec le picker range et les inputs
+#on met les dates en index pour la sélection
+# car ensuite nous utiliserons le picker range dans les inputs
 df.set_index('date',inplace=True)
 
 #-------------------dictionnaires-----------------------------------------------------------------------------------------------------------------------------------
@@ -122,7 +123,7 @@ card_date=dbc.Card([
                         inverse=True, #le texte est donc écrit en blanc sur fond gris foncé
                         outline=False, #True enlève la couleur de la carte
                         style={'height':'100%'}, #pour harmoniser la hauteur des cartes d'une même ligne
-                        className="w-75",
+                        className="w-75", #élément qui a une largeur égale à 75% de celle de son parent
                     )
 
 #Définition d'une carte pour filtrer selon l'hôtel et le groupe (notes)
@@ -132,6 +133,7 @@ card_filter_hotel=dbc.Card([
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),
+                                #sélection de l'hôtel New Port Bay Club par défaut (value=6)
                             ]),
                         ],       
                         color="secondary", #choix de la couleur
@@ -144,7 +146,7 @@ card_filter_hotel=dbc.Card([
 card_filter_notes=dbc.Card([
                         dbc.CardBody([
                                 html.H4("un groupe de clients (notes)",className="Card-text"),
-                                #création de la barre de défilement pour sélectionner le groupe
+                                #création de la barre de défilement pour sélectionner le groupe (par défaut tous (value=3))
                                 #servira de input dans la fonction callback
                                 dcc.Dropdown(id='notes-dropdown',options=notes_dict,value=3,style = {"color":"black"}),  
                             ]),
@@ -219,7 +221,8 @@ def layout():
 #-------------------------------------------------------------------------------------------------------------------------------
 
 @callback(
-    #les différentes sorties qui seront répercutées dans les cartes et la fonction
+    #les différentes sorties qui seront répercutées dans les cartes 
+    #lors du return de la fonction update_output
     Output(component_id='moyenne_note',component_property='children'),
     Output(component_id='pourcentage_groupe',component_property='children'),
     Output(component_id='fig_sunburst',component_property='figure'),
@@ -237,9 +240,11 @@ def update_output(decision_hotel,choix_groupe,start_date,end_date):
     #sélection du dataframe sur l'hôtel et/ou le groupe selon la note attribuée
     if choix_groupe==3: #pas de sélection sur le groupe par rapport à la note attribuée
         df_select=dff[dff.level_hotel==decision_hotel] 
+        #cas où l'hôtel est fermé sur cette période
         if len(df_select)==0:
             percentgroup=0
             note=0
+            #aucune figure
             sun = {}
         else:
             percentgroup=100
@@ -256,7 +261,7 @@ def update_output(decision_hotel,choix_groupe,start_date,end_date):
             note=0
             sun={}
         #calcul du pourcentage nombre de personne ayant fréquenté l'hôtel sur la période 
-        # et ayant mis une note dans la fourchette choisie
+        #et ayant mis une note dans la fourchette choisie
         #par rapport au nombre de personnes présentes dans cet hôtel sur la même période
         else :
         #Les résultats sont arrondis au millième

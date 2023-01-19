@@ -88,6 +88,7 @@ clusters_dict=[{'label':html.Div(['Premier cluster'],style={'font-size':22}),'va
 #--------------fonctions-----------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------
 
+#fonction de nettoyage de chaque commentaire
 def nettoyage_doc(doc_param):
     #récupérer la liste des ponctuations
     ponctuations = list(string.punctuation)
@@ -119,20 +120,25 @@ def nettoyage_doc(doc_param):
     #fin
     return doc
 
-
+#fonction qui crée un 
 def creation_corpus_liste(df,champ):
-    df_cloud=df[champ].reset_index(drop=True)
+    df_corpus=df[champ].reset_index(drop=True)
     l=[]
-    for i in range(len(df_cloud)-1):
-        if isinstance(df_cloud[i], float)==True:
+    for i in range(len(df_corpus)-1):
+        if isinstance(df_corpus[i], float)==True:
             l.append(i)
-    df_cloud=df_cloud.drop(df_cloud.index[l])
-    df_cloud=df_cloud.reset_index()
+    #création d'un dataframe ne comportant pas de ligne vide 
+    #pour la colonne commentaire selon le champ (positif ou négatif)
+    df_corpus=df_corpus.drop(df_corpus.index[l])
+    df_corpus=df_corpus.reset_index()
+    #nettoyage de chaque ligne de commentaires non vide
     corpus_liste=[]
-    for i in range(df_cloud.shape[0]-1):
-        corpus_liste.append(nettoyage_doc(df_cloud.iloc[i,1]))
+    for i in range(df_corpus.shape[0]-1):
+        corpus_liste.append(nettoyage_doc(df_corpus.iloc[i,1]))
+    #création de corpus nettoyer
     return(corpus_liste)
 
+#fonction qui récupère le pourcentage pour chaque mot (quatre en tout) pour un cluster
 def completer(i,k,clust,final_clusters):
     if k==0 :
         j=0
@@ -161,16 +167,24 @@ def clusters(corpus,i,couleur):
     l=[]
     for topic in topics:
         l.append(topic)
+    #création du dataframe comportant les mots et les fréquences de chacun dans ce cluster
     clusters=pd.DataFrame(l,columns = ['Clusters','Fréquence apparition de chaque terme'])
+    #split de la colonne comportant les informations mots et fréquences
     clust=clusters['Fréquence apparition de chaque terme'].map(str)
+    #création du dataframe avec une colonne pour le numéro de cluster, 
+    #une colonne pour les mots et une pour les fréquences d'apparition
     final_clusters = pd.DataFrame(columns=['numéro cluster','mots','pourcentages'], index = range(4))
+    #remplit le dataframe pour chaque mot du cluster
     completer(i,0,clust,final_clusters)
     completer(i,2,clust,final_clusters)
     completer(i,4,clust,final_clusters)
     completer(i,6,clust,final_clusters)
+    #recodage du numéro de cluster en type 'entier'
     final_clusters['numéro cluster'] = final_clusters['numéro cluster'].astype('int')
+    #er le pourcentage en float
     final_clusters['pourcentages'] = pd.to_numeric(final_clusters['pourcentages'], downcast="float")
     if couleur=='positive_review' :
+        #bar plot des mots et de leur fréquence dans le cluster
         fig = px.bar(final_clusters, x="mots", y="pourcentages")  
     else :
         fig = px.bar(final_clusters, x="mots", y="pourcentages",color_discrete_sequence=['red'])  
@@ -219,6 +233,7 @@ card_filter_hotel=dbc.Card([
                         className="w-75",
                     )
 
+#Définition d'une carte pour le groupe de clients en fonction des notes
 card_filter_notes=dbc.Card([
                         dbc.CardBody([
                                 html.H4("un groupe de clients",className="Card-text"),
@@ -250,7 +265,7 @@ card_filter_cluster=dbc.Card([
                         className="w-75",
                     )
 
-##Définition d'une carte pour les titres non automatiques
+#Définition d'une carte pour le pourcentage de délai et la moyenne des notes de cette catégorie
 card_delai=dbc.Card([
                         dbc.CardBody([
                                 html.H4("Délai commentaires",className="Card-text"),
@@ -268,7 +283,7 @@ card_delai=dbc.Card([
                         #style={'textAlign':'center','height':'100%'},
                         ) 
 
-#Définition d'une carte pour les pays
+#Définition d'une carte pour les types de séjours (famille, couple, etc)
 card_sejour=dbc.Card([
                         dbc.CardBody([
                                 html.Iframe(id = 'type_sejour',height=220,width=400)
@@ -279,7 +294,6 @@ card_sejour=dbc.Card([
                         outline=False,
                         style={'textAlign':'center'}
                         ) 
-
 
 #Définition d'une carte pour les clusters sur avis positifs
 card_positif=dbc.Card([
@@ -369,23 +383,38 @@ def update_output(decision_hotel,choix_groupe,choix_cluster,start_date,end_date)
         percentdelai=0
         moyennedelai=0
         sejour=pd.DataFrame([{'id_client': 'Néant', 'grade_review': 0}])
+        #absence de figure (barplot) pour les clusters
         cap={}
         can={}
     else :
+        #pourcentage de commentaires dont le délai est supérieur ou égal à 2 mois
         percentdelai=round(len(df_select[df_select.delay_comment>=2])*100/len(df_select),3)
+        #moyenne de ces commentaires
         moyennedelai=round(df_select[df_select.delay_comment>=2]['grade_review'].mean(),3)
 
+        #pourcentage par type de séjours (en famille, groupe, couple, individuel) dans un data frame
+        #le pourcentage est stocké dans la colonne id_client
         d1=df_select.groupby(['traveler_infos'])[['id_client','country']].count()*100/len(df_select)
+        #moyenne des notes par type de séjour dans un dataframe 
+        #la moyenne est stockée dans la colonne grade review
         d2=df_select.groupby(['traveler_infos'])[['grade_review','nuitee']].mean()
+        #regroupement des deux dataframes selon le type de séjour
         df_sejour=pd.merge(d1,d2,on='traveler_infos')
+        #sélection des colonnes où il y a les pourcentages et les moyennes
         var=['id_client','grade_review']
+        #réduction du dataframe "mergé" en un dataframe comporatnt uniquement les informations nécessaires
         sejour=df_sejour[var]
+        #création du corpus liste avec les commentaires positifs puis négatifs
         corpusplus=creation_corpus_liste(df_select,'positive_review')
         corpusneg=creation_corpus_liste(df_select,'negative_review')
+        #création du barplot des mots selon le choix du cluster à partir des corpus précédents
         cap=clusters(corpusplus,choix_cluster,'positive_review')
         can=clusters(corpusneg,choix_cluster,'negative_review')
+    #renommage des colonnes
     sejour=sejour.rename(columns={"id_client": "pourcentages","grade_review":"moyenne"})
+    #gestion du style du tableau
     sejour = sejour.style.set_properties(**{'color': 'white','font-size': '20pt',})
+    #affichage des nombres dans le tableau avec une précision au millième
     sejour=sejour.format(precision=3)
     
     return percentdelai,moyennedelai,sejour.to_html(index=False,header=True),cap,can

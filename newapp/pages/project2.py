@@ -72,7 +72,6 @@ df.set_index('date',inplace=True)
 
 #Création d'un dictionnaire pour le filtre hôtel (dropdown)
 hotel_dict=[{'label':html.Div(['Newport Bay Club'],style={'font-size':22}),'value':6},{'label':html.Div(['Art of Marvel'],style={'font-size':22}),'value':5},{'label':html.Div(['Sequoia Lodge'],style={'font-size':22}),'value':4},{'label':html.Div(['Cheyenne'],style={'font-size':22}),'value':3},{'label':html.Div(['Santa Fé'],style={'font-size':22}),'value':2},{'label':html.Div(['Davy Crockett Ranch'],style={'font-size':22}),'value':1}]
-#hotel_dict=[{'label':html.Div(['Newport Bay Club'],style={'font-size':22}),'value':'Newport_Bay_Club'},{'label':html.Div(['Art of Marvel'],style={'font-size':22}),'value':'New_York'},{'label':html.Div(['Sequoia Lodge'],style={'font-size':22}),'value':'Sequoia_Lodge'},{'label':html.Div(['Cheyenne'],style={'font-size':22}),'value':'Cheyenne'},{'label':html.Div(['Santa Fé'],style={'font-size':22}),'value':'Santa_Fe'},{'label':html.Div(['Davy Crockett Ranch'],style={'font-size':22}),'value':'Davy_Crockett_Ranch'}]
 
 #Création d'un dictionnaire pour le filtre notes (dropdown)
 notes_dict=[{'label':html.Div(['Toutes notes'],style={'font-size':22}),'value':3},{'label':html.Div(['note >=8'],style={'font-size':22}),'value':2},{'label':html.Div(['5 < note < 8'],style={'font-size':22}),'value':1},{'label':html.Div(['notes <= 5'],style={'font-size':22}),'value':0}]
@@ -80,6 +79,7 @@ notes_dict=[{'label':html.Div(['Toutes notes'],style={'font-size':22}),'value':3
 #--------------fonctions-----------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------
 
+#fonction qui nettoie un document
 def nettoyage_doc(doc_param):
     #récupérer la liste des ponctuations
     ponctuations = list(string.punctuation)
@@ -87,7 +87,7 @@ def nettoyage_doc(doc_param):
     chiffres = list("0123456789")
     #liste de mots spécifiques à retirer
     special=["parc","disneyland","disney","paris","hôtel","lhôtel","😡😡😡😡😡😡","😡😡😡😡😡je","🤣🤣👍👍👍","très","trop","plus","avon","marvel","fait","déjà","donc","après","cest","alors","vraiment","quand","avant","toute","cela","contre","faire","dont","aller","comme","avoir"]
-    #outil pour procéder à la lemmatisation - attention à charger le cas échéant
+    #outil pour procéder à la lemmatisation - attention de charger le nltk.download('wordnet') le cas échéant
     lem = WordNetLemmatizer()
     #liste des mots vides
     mots_vides = stopwords.words("french")
@@ -142,7 +142,9 @@ def word_cloud(df,champ):
     plt.margins(0,0)
     #retour du nuage de mots correspondant à la sélection du champ
     if champ=='positive_review':
+        #sauvegarde du word cloud sous forme de figure
         plt.savefig("./assets/wordpos.png", bbox_inches = 'tight', pad_inches = 0)
+        #création d'un chemin pour accéder à la figure
         image_path=r'assets/wordpos.png'
     else :
         plt.savefig("./assets/wordneg.png", bbox_inches = 'tight', pad_inches = 0)
@@ -152,10 +154,13 @@ def word_cloud(df,champ):
 def count_avis(df,champ):
     df_new=df[champ].reset_index(drop=True)
     l=[]
+    #recherche des indices où il y n'y a pas de "valeurs"
+    #et stockage dans une liste
     for i in range(len(df_new)-1):
         if (df_new[i]=='NaN')==True:
         #if isinstance(df_new[i], float)==True:
             l.append(i)
+    #longueur de la liste
     return(len(l))
 
 #----------------définition des cartes-------------------------------------------------------------------------------
@@ -191,8 +196,7 @@ card_filter_hotel=dbc.Card([
                                 html.H4("un hôtel",className="Card-text"),
                                 #création de la barre de défilement pour sélectionner l'hôtel
                                 #servira de input dans la fonction callback
-                                dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),  
-                                #dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value='Newport_Bay_Club',style = {"color":"black"}),  
+                                dcc.Dropdown(id='hotel-dropdown',options=hotel_dict,value=6,style = {"color":"black"}),    
                             ]),
                         ],
                         color="secondary", #choix de la couleur
@@ -220,6 +224,8 @@ card_filter_notes=dbc.Card([
 ##Définition d'une carte pour les titres non automatiques
 card_top_titres=dbc.Card([
                         dbc.CardBody([
+                                #Iframe permettra de stocker et d'afficher ensuite le dataframe
+                                #il intègre un fichier web dans un autre
                                 html.Iframe(id ='top_titres',height=230)
                             ])
                         ],
@@ -229,7 +235,7 @@ card_top_titres=dbc.Card([
                         style={'textAlign':'center'},
                         ) 
 
-#Définition d'une carte pour les pays
+#Définition d'une carte pour les pays (provenance des internautes)
 card_top_pays=dbc.Card([
                         dbc.CardBody([
                                 html.Iframe(id = 'top_pays',height=230)
@@ -265,7 +271,7 @@ card_pourcentage_commentaires=dbc.Card([
 card_positifs=dbc.Card([
                     dbc.CardBody([
                         html.H4("Avis positifs",className="Card-text"),
-                        #affichage word cloud
+                        #affichage word cloud sous forme d'image
                         html.Img(id='fig_avis_positifs')
                         ])
                     ],
@@ -342,35 +348,49 @@ def layout():
 )
 
 def update_output(decision_hotel,choix_groupe,start_date,end_date):
+    #listes des titres automatisés que nous supprimerons pour choisir le TOP 3 des titres
     autotitres = ['Fabuleux ','Bien ','Passable','Assez médiocre ','Médiocre ']
+    #sélection d'une partie du data frame selon les dates de début et fin sélectionnées
     dff=df.loc[start_date:end_date]
     if choix_groupe==3:
+        #sélection de tous les avis de l'hôtel sur la période choisie
         df_select=dff[dff.level_hotel==decision_hotel]
     else:
+        #sélection de tous les avis d'un groupe choisi sur la période choisie
         df_select=dff[(dff.level_hotel==decision_hotel) & (dff.level_grade_review==choix_groupe)]
-    
+    #cas où l'hôtel est fermé sur cette période
     if len(df_select)==0:
         percentplus=0
         percentmoins=0
         titres=pd.DataFrame([{'index': 'Néant', 'review_title': 0}])
         pays=pd.DataFrame([{'index':'Néant','country':0}])
+        #image hôtel fermé
         avisplus=r'assets/closed.png'
         avismoins=r'assets/closed.png'
+        #encodage pour l'image et (open(...,'rb').read()) pour lire l'image
         encoded_image_avisplus = base64.b64encode(open(avisplus, 'rb').read())
         encoded_image_avismoins = base64.b64encode(open(avismoins, 'rb').read())
     else :
+        #sélection des 3 titres les plus apposés
         titres=df_select[~df_select.review_title.isin(autotitres)].review_title.value_counts().reset_index().head(3)
+        #sélection des 5 nationalités les plus représentées
         pays=df_select.country.value_counts().reset_index().head(5)
+        #nombre de commentaires positifs
         nplus=count_avis(df_select,'positive_review')
         nmoins=count_avis(df_select,'negative_review')
+        #pourcentage de commentaires positifs
         percentplus=round((1-nplus/len(df_select))*100,3)
         percentmoins=round((1-nmoins/len(df_select))*100,3)
+        #recupération des chemins pour accéder aux images word cloud
         avisplus=word_cloud(df_select,'positive_review')
         avismoins=word_cloud(df_select,'negative_review') 
+        #encodage et affichage
         encoded_image_avisplus = base64.b64encode(open(avisplus, 'rb').read())
         encoded_image_avismoins = base64.b64encode(open(avismoins, 'rb').read())
-
+    #gestion de l'affichage des tableaux
+    #renomage des colonnes
     titres=titres.rename(columns={"index": "Titres", "review_title": "Effectifs"})
+    #style du tableau : couleur du texte des cellules en blanc et taille de ce texte
     titres = titres.style.set_properties(**{'color': 'white','font-size': '20pt',})
     pays=pays.rename(columns={"index": "Pays", "country": "Effectifs"})
     pays = pays.style.set_properties(**{'color': 'white','font-size': '20pt',})

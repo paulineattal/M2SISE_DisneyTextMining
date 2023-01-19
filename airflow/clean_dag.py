@@ -44,10 +44,11 @@ def recodage_type_float(**kwargs):
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
     print(df.dtypes)
-    kwargs['ti'].xcom_push(key='df_float', value=df)
+    return df
+    #kwargs['ti'].xcom_push(key='df_float', value=df)
 
 def ajout_levels(**kwargs):
-    df = kwargs['ti'].xcom_pull(key='df_float', task_ids='recodage_type_float')
+    df = kwargs['ti'].xcom_pull(task_ids='recodage_type_float')
     print(df.dtypes)
     conditionlist_note = [
     (df['grade_review'] >= 8) ,
@@ -67,17 +68,19 @@ def ajout_levels(**kwargs):
     choicelist_hotel = [6,5,4,3,2,1]
     df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
     print('good')
-    kwargs['ti'].xcom_push(key='df_level', value=df)
+    return df
+    #kwargs['ti'].xcom_push(key='df_level', value=df)
 
 def recodage_type_int(**kwargs):    
-    df = kwargs['ti'].xcom_pull(key='df_level', task_ids='ajout_levels')
+    df = kwargs['ti'].xcom_pull(task_ids='ajout_levels')
     for i in ['level_hotel', 'level_grade_review']:
         df[i] = df[i].astype(int)   
-    kwargs['ti'].xcom_push(key='df_int', value=df) 
+    return df
+    #kwargs['ti'].xcom_push(key='df_int', value=df) 
 
 
 def clean_date_ajout(**kwargs):
-    df = kwargs['ti'].xcom_pull(key='df_int', task_ids='recodage_type_int')
+    df = kwargs['ti'].xcom_pull(task_ids='recodage_type_int')
     df_moisreview=df['date_review'].map(str)
     for i in range(df.shape[0]):
         df_moisreview[i]=df_moisreview[i].split()[4]
@@ -100,11 +103,12 @@ def clean_date_ajout(**kwargs):
     df = pd.concat([df,df_date], join = 'outer', axis = 1)
     print(df)
     print(df.dtypes)
-    kwargs['ti'].xcom_push(key='df_clean_date', value=df) 
+    return df
+    #kwargs['ti'].xcom_push(key='df_clean_date', value=df) 
 
 
 def add_date(**kwargs) :
-    df = kwargs['ti'].xcom_pull(key='df_clean_date', task_ids='clean_date_ajout')
+    df = kwargs['ti'].xcom_pull(task_ids='clean_date_ajout')
     df = df.drop_duplicates(keep='first')
     df.drop(df[(df.delay_comment >3)].index , inplace=True)
     df=df.reset_index(drop=True)
@@ -115,10 +119,11 @@ def add_date(**kwargs) :
         df_date[i] = df_date[i][pos+2:] 
     df['date_review']=df_date
     df["date"] = pd.to_datetime(dict(year=df.year, month=df.month_num, day=1))
-    kwargs['ti'].xcom_push(key='df_add_date', value=df) 
+    return df
+    #kwargs['ti'].xcom_push(key='df_add_date', value=df) 
 
 def save_clean_file(**kwargs):
-    df = kwargs['ti'].xcom_pull(key='df_add_date', task_ids='add_date')
+    df = kwargs['ti'].xcom_pull(task_ids='add_date')
     try:
         conn = psycopg2.connect(
             user = "m140",

@@ -43,8 +43,8 @@ def create_table_date(**kwargs):
     df_date.drop_duplicates(keep='first', inplace=True)
     df_date.reset_index(drop=True, inplace=True)
 
-    kwargs['dag_run'].dag.df_date = df_date
-
+    df_date = df_date.to_json(orient="records", force_ascii=False)
+    kwargs['ti'].xcom_push(key='df_date', value=df_date)
 
 
 def create_table_client(**kwargs):
@@ -54,8 +54,9 @@ def create_table_client(**kwargs):
     df_client = df[champs_client].copy()
     df_client.rename(columns={'Country': 'country'}, inplace=True)
     df_client['id_client'] = df_client.apply(lambda _: uuid.uuid4(), axis=1)
-
-    kwargs['dag_run'].dag.df_client = df_client
+    
+    df_client = df_client.to_json(orient="records", force_ascii=False)
+    kwargs['ti'].xcom_push(key='df_client', value=df_client)
     
 
 def create_table_hotel(**kwargs):
@@ -68,12 +69,14 @@ def create_table_hotel(**kwargs):
     df_hotel['id_hotel'] = df_hotel.apply(lambda _: uuid.uuid4(), axis=1)
     df_hotel.reset_index(drop=True, inplace=True)
     
-    kwargs['dag_run'].dag.df_hotel = df_hotel
+    df_hotel = df_hotel.to_json(orient="records", force_ascii=False)
+    kwargs['ti'].xcom_push(key='df_hotel', value=df_hotel)
 
 
 def create_table_chambre(**kwargs):
     df = kwargs['dag_run'].dag.df
-    df_hotel = kwargs['dag_run'].dag.df_hotel
+    df_hotel = kwargs['ti'].xcom_pull(key='df_hotel', task_ids='create_table_hotel')
+    df_hotel = pd.read_json(df_hotel)
 
     champs_chambre = ["room_type", "hotel"]
     df_room = df[champs_chambre].copy()
@@ -85,14 +88,18 @@ def create_table_chambre(**kwargs):
     df_room['id_room'] = df_room.apply(lambda _: uuid.uuid4(), axis=1)
     df_room.drop(columns=['hotel', 'level_hotel'], inplace=True)
 
-    kwargs['dag_run'].dag.df_room = df_room
+    df_room = df_room.to_json(orient="records", force_ascii=False)
+    kwargs['ti'].xcom_push(key='df_room', value=df_room)
 
 
 def create_table_reservation(**kwargs):
+    df_hotel = kwargs['ti'].xcom_pull(key='df_hotel', task_ids='create_table_hotel')
+    df_hotel = pd.read_json(df_hotel)
+    df_client = kwargs['ti'].xcom_pull(key='df_client', task_ids='create_table_client')
+    df_client = pd.read_json(df_client)
+    df_room = kwargs['ti'].xcom_pull(key='df_room', task_ids='create_table_chambre')
+    df_room = pd.read_json(df_room)
     df = kwargs['dag_run'].dag.df
-    df_hotel = kwargs['dag_run'].dag.df_hotel
-    df_client = kwargs['dag_run'].dag.df_client
-    df_room = kwargs['dag_run'].dag.df_room
 
     champs_res=["grade_review", "level_grade_review", "id_date", "room_type"]
     df_res = df[champs_res].copy()
@@ -107,7 +114,8 @@ def create_table_reservation(**kwargs):
     df_res.drop(columns=['room_type'], inplace=True)
     df_res = pd.concat([df_res, df_client['id_client']], axis=1) 
 
-    kwargs['dag_run'].dag.df_res = df_res
+    df_res = df_res.to_json(orient="records", force_ascii=False)
+    kwargs['ti'].xcom_push(key='df_res', value=df_res)
     
 
 def alimente_dw(**kwargs):
@@ -119,11 +127,16 @@ def alimente_dw(**kwargs):
           database = "m139"
     )
     
-    date = kwargs['dag_run'].dag.df_date
-    hotel = kwargs['dag_run'].dag.df_hotel
-    room = kwargs['dag_run'].dag.df_room
-    client = kwargs['dag_run'].dag.df_client
-    reservation = kwargs['dag_run'].dag.df_res
+    hotel = kwargs['ti'].xcom_pull(key='df_hotel', task_ids='create_table_hotel')
+    hotel = pd.read_json(hotel)
+    client = kwargs['ti'].xcom_pull(key='df_client', task_ids='create_table_client')
+    client = pd.read_json(client)
+    room = kwargs['ti'].xcom_pull(key='df_room', task_ids='create_table_chambre')
+    room = pd.read_json(room)
+    date = kwargs['ti'].xcom_pull(key='df_date', task_ids='create_table_date')
+    date = pd.read_json(date)
+    res = kwargs['ti'].xcom_pull(key='df_res', task_ids='create_table_date')
+    res = pd.read_json(res)
 
     fct.insert_values(conn, date, 'date')
     fct.insert_values(conn, hotel, 'hotel')

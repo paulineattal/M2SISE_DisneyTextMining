@@ -46,17 +46,15 @@ def recodage_type_float(**kwargs):
     for i in ['grade_review']:
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
-    # print(df.dtypes)
 
+    #push le df au format json
     df = df.to_json(orient="records", force_ascii=False)
-    
     kwargs['ti'].xcom_push(key='df_float', value=df)
 
 def ajout_levels(**kwargs):
-
+    #pull le json qu'on remet au format df
     df = kwargs['ti'].xcom_pull(key='df_float', task_ids='recodage_type_float')
     df = pd.read_json(df)
-    print(df.dtypes)
 
     conditionlist_note = [
     (df['grade_review'] >= 8) ,

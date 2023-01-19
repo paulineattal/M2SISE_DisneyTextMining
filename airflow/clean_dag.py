@@ -39,16 +39,16 @@ class MyDag(DAG):
 
 
 def clean_date_ajout(**kwargs):
-    df = kwargs['dag_run'].dag.df
-    
-    df_moisreview=df['date_review'].map(str)
-    for i in range(df.shape[0]):
+    dag = kwargs['dag_run']
+
+    df_moisreview=dag.df['date_review'].map(str)
+    for i in range(dag.df.shape[0]):
         df_moisreview[i]=df_moisreview[i].split()[4]
-    df_moisreservation=df['reservation_date'].map(str)
-    for i in range(df.shape[0]):
+    df_moisreservation=dag.df['reservation_date'].map(str)
+    for i in range(dag.df.shape[0]):
         df_moisreservation[i]=df_moisreservation[i].split()[0].lower()
-        df_anneereservation=df['reservation_date'].map(str)
-    for i in range(df.shape[0]):
+        df_anneereservation=dag.df['reservation_date'].map(str)
+    for i in range(dag.df.shape[0]):
         df_anneereservation[i]=df_anneereservation[i].split()[1]
         from time import strptime
     import locale
@@ -60,48 +60,50 @@ def clean_date_ajout(**kwargs):
 
     d = {'month_str': df_moisreservation, 'month_num': list_mois_num, 'year' : df_anneereservation,  'delay_comment': delai}
     df_date = pd.DataFrame(data=d)
-    df = pd.concat([df,df_date], join = 'outer', axis = 1)
-    kwargs['dag_run'].dag.df = df
+    dag.df = pd.concat([dag.df,df_date], join = 'outer', axis = 1)
+    print(dag.df)
+    print(dag.df.dtypes)
+    #kwargs['dag_run'].dag.df = df
 
     
 
 def ajout_levels(**kwargs):
-    df = kwargs['dag_run'].conf['df']
-    print(df.dtypes)
+    dag = kwargs['dag_run']
+    print(dag.df.dtypes)
     conditionlist_note = [
-    (df['grade_review'] >= 8) ,
-    (df['grade_review'] > 5) & (df['grade_review'] <8),
-    (df['grade_review'] <= 5)]
+    (dag.df['grade_review'] >= 8) ,
+    (dag.df['grade_review'] > 5) & (dag.df['grade_review'] <8),
+    (dag.df['grade_review'] <= 5)]
     choicelist_note = [2,1,0]
-    df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
+    dag.df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
     print('test')
     conditionlist_hotel = [
-    (df['hotel'] == "Newport_Bay_Club"),
-    (df['hotel'] == "New_York"),
-    (df['hotel'] == "Sequoia_Lodge"),
-    (df['hotel'] == "Cheyenne"),
-    (df['hotel'] == "Santa_Fe"),
-    (df['hotel'] == "Davy_Crockett_Ranch")
+    (dag.df['hotel'] == "Newport_Bay_Club"),
+    (dag.df['hotel'] == "New_York"),
+    (dag.df['hotel'] == "Sequoia_Lodge"),
+    (dag.df['hotel'] == "Cheyenne"),
+    (dag.df['hotel'] == "Santa_Fe"),
+    (dag.df['hotel'] == "Davy_Crockett_Ranch")
     ]
     choicelist_hotel = [6,5,4,3,2,1]
-    df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
+    dag.df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
     print('good')
-    kwargs['dag_run'].dag.df = df
+    #kwargs['dag_run'].dag.df = df
 
 
 def recodage_type_float(**kwargs):
-    df = kwargs['dag_run'].dag.df
+    dag = kwargs['dag_run']
     for i in ['grade_review']:
-        df[i] = df[i].str.replace(",",".")
-        df[i] = pd.to_numeric(df[i], downcast="float")
-    kwargs['dag_run'].conf['df'] = df
+        dag.df[i] = dag.df[i].str.replace(",",".")
+        dag.df[i] = pd.to_numeric(df[i], downcast="float")
+    #kwargs['dag_run'].conf['df'] = df
 
 
 def recodage_type_int(**kwargs):
-    df = kwargs['dag_run'].dag.df
+    dag = kwargs['dag_run']
     for i in ['level_hotel', 'level_grade_review']:
-        df[i] = df[i].astype(int)    
-    kwargs['dag_run'].dag.df = df
+        dag.df[i] = dag.df[i].astype(int)    
+    #kwargs['dag_run'].dag.df = df
 
 
 

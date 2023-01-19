@@ -8,6 +8,8 @@ import functions as fct
 from datetime import datetime, timedelta
 #from clean_dag import dag_clean, save_clean_file_task
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+import json
+import ftfy
 
 default_args = {
     'owner' : "Text-Mining_Project",
@@ -35,33 +37,35 @@ class MyDag(DAG):
  
 def create_table_date(**kwargs):
     df = kwargs['dag_run'].dag.df
-
     df["id_date"] = df["date"].astype(str)
     df["id_date"] = df["id_date"].str.replace("-","")
     champs_date = ["month_str","month_num","year","date", "id_date"]
     df_date = df[champs_date].copy()
     df_date.drop_duplicates(keep='first', inplace=True)
     df_date.reset_index(drop=True, inplace=True)
-
+    print(df_date)
     df_date = df_date.to_json(orient="records", force_ascii=False)
     kwargs['ti'].xcom_push(key='df_date', value=df_date)
 
 
 def create_table_client(**kwargs):
     df = kwargs['dag_run'].dag.df
+    champs_client = ["country", "nuitee", "traveler_infos", "review_title", "positive_review", "negative_review", "usefulness_review", "delay_comment"]
 
-    champs_client = ["Country", "nuitee", "traveler_infos", "review_title", "positive_review", "negative_review", "usefulness_review", "delay_comment"]
     df_client = df[champs_client].copy()
-    df_client.rename(columns={'Country': 'country'}, inplace=True)
+    df_client.rename(columns={'country': 'country'}, inplace=True)
     df_client['id_client'] = df_client.apply(lambda _: uuid.uuid4(), axis=1)
-    
-    df_client = df_client.to_json(orient="records", force_ascii=False)
+    print(df_client)
+
+    df_client = df_client.applymap(ftfy.fix_encoding)
+
+    print(df_client)
     kwargs['ti'].xcom_push(key='df_client', value=df_client)
     
 
 def create_table_hotel(**kwargs):
     df = kwargs['dag_run'].dag.df
-
+    
     champs_hotel = ["hotel", "level_hotel"]
     df_hotel = df[champs_hotel].copy()
     df_hotel.drop_duplicates(keep='first', inplace=True)
@@ -142,7 +146,7 @@ def alimente_dw(**kwargs):
     fct.insert_values(conn, hotel, 'hotel')
     fct.insert_values(conn, room, 'room')
     fct.insert_values(conn, client, 'client')
-    fct.insert_values(conn, reservation, 'reservation')
+    fct.insert_values(conn, res, 'reservation')
 
 
 with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 0 * * *') as dag_dw:

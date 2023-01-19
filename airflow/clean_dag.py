@@ -45,15 +45,15 @@ def recodage_type_float(**kwargs):
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
     # print(df.dtypes)
-    df_pickle = pickle.dumps(df)
-    kwargs['ti'].xcom_push(key='dataframe_pickle', value=df_pickle)
-    print(df)
+    #df_pickle = pickle.dumps(df)
+    print(df.dtypes)
+    kwargs['ti'].xcom_push(key='df_float', value=df_pickle)
 
 def ajout_levels(**kwargs):
 
-    df_pickle = kwargs['ti'].xcom_pull(key='dataframe_pickle')
-    df = pickle.loads(df_pickle)
-    print(df)
+    df = kwargs['ti'].xcom_pull(key='df_float', task_id='recodage_type_float')
+    #df = pickle.loads(df_pickle)
+    print(df.dtypes)
 
     conditionlist_note = [
     (df['grade_review'] >= 8) ,
@@ -73,11 +73,11 @@ def ajout_levels(**kwargs):
     choicelist_hotel = [6,5,4,3,2,1]
     df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
     print('good')
-    return df
-    #kwargs['ti'].xcom_push(key='df_level', value=df)
+    
+    kwargs['ti'].xcom_push(key='df_level', value=df)
 
 def recodage_type_int(**kwargs):    
-    df = kwargs['ti'].xcom_pull(task_ids='ajout_levels')
+    df = kwargs['ti'].xcom_pull(key='df_level',task_ids='ajout_levels')
     for i in ['level_hotel', 'level_grade_review']:
         df[i] = df[i].astype(int)   
     return df

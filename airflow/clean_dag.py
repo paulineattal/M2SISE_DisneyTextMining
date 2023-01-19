@@ -68,7 +68,7 @@ def clean_date_ajout(**kwargs):
     
 
 def ajout_levels(**kwargs):
-    dag = kwargs['dag_run']
+    dag = kwargs['dag_run'].dag
     print(dag.df.dtypes)
     conditionlist_note = [
     (dag.df['grade_review'] >= 8) ,
@@ -92,15 +92,15 @@ def ajout_levels(**kwargs):
 
 
 def recodage_type_float(**kwargs):
-    dag = kwargs['dag_run']
+    dag = kwargs['dag_run'].dag
     for i in ['grade_review']:
         dag.df[i] = dag.df[i].str.replace(",",".")
-        dag.df[i] = pd.to_numeric(df[i], downcast="float")
+        dag.df[i] = pd.to_numeric(dag.df[i], downcast="float")
     #kwargs['dag_run'].conf['df'] = df
 
 
 def recodage_type_int(**kwargs):
-    dag = kwargs['dag_run']
+    dag = kwargs['dag_run'].dag
     for i in ['level_hotel', 'level_grade_review']:
         dag.df[i] = dag.df[i].astype(int)    
     #kwargs['dag_run'].dag.df = df

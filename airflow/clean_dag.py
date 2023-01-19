@@ -1,12 +1,14 @@
 # Dependencies
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 import psycopg2
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from dateutil import parser
 import functions as fct
+#from dag_dw import dag_dw
 
 path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
 
@@ -59,19 +61,22 @@ def clean_date_ajout(**kwargs):
     d = {'month_str': df_moisreservation, 'month_num': list_mois_num, 'year' : df_anneereservation,  'delay_comment': delai}
     df_date = pd.DataFrame(data=d)
     df = pd.concat([df,df_date], join = 'outer', axis = 1)
+    print(df.columns)
+    kwargs['dag_run'].dag.df = df
 
     
 
-
 def ajout_levels(**kwargs):
     df = kwargs['dag_run'].dag.df
-
+    print("OK")
+    print(df)
     conditionlist_note = [
     (df['grade_review'] >= 8) ,
     (df['grade_review'] > 5) & (df['grade_review'] <8),
     (df['grade_review'] <= 5)]
     choicelist_note = [2,1,0]
     df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
+    print('test')
     conditionlist_hotel = [
     (df['hotel'] == "Newport_Bay_Club"),
     (df['hotel'] == "New_York"),
@@ -82,7 +87,7 @@ def ajout_levels(**kwargs):
     ]
     choicelist_hotel = [6,5,4,3,2,1]
     df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
-    
+    print('good')
     kwargs['dag_run'].dag.df = df
 
 
@@ -186,9 +191,15 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
         python_callable = save_clean_file,
         dag = dag_clean)
 
+    t_last = TriggerDagRunOperator(
+        dag=dag_clean,
+        task_id='last',
+        trigger_dag_id = 'dag_dw'
+    )
 # Tâche Airflow    
 
 clean_date_ajout_task.set_downstream(ajout_levels_task)
 ajout_levels_task.set_downstream(recodage_type_task)
 recodage_type_task.set_downstream(add_date_task)
 add_date_task.set_downstream(save_clean_file_task)
+save_clean_file_task.set_downstream(t_last)

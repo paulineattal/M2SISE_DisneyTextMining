@@ -6,7 +6,8 @@ import pandas as pd
 import uuid
 import functions as fct
 from datetime import datetime, timedelta
-from clean_dag import dag_clean
+from clean_dag import dag_clean, save_clean_file_task
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 default_args = {
     'owner' : "Text-Mining_Project",
@@ -109,9 +110,6 @@ def create_table_reservation(**kwargs):
     kwargs['dag_run'].dag.df_res = df_res
     
 
-
-
-
 def alimente_dw(**kwargs):
     conn = psycopg2.connect(
           user = "m139",
@@ -134,41 +132,50 @@ def alimente_dw(**kwargs):
     fct.insert_values(conn, reservation, 'reservation')
 
 
-with MyDag( 'dw' ,default_args = default_args, schedule_interval = '0 0 * * *') as dag_dw:
+with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 0 * * *') as dag_dw:
 
     # Tâche Airflow    
     create_table_date_task = PythonOperator(
         task_id = 'create_table_date',
+        provide_context=True,
         python_callable = create_table_date,
         dag = dag_dw)
 
     create_table_client_task = PythonOperator(
         task_id = 'create_table_client',
+        provide_context=True,
         python_callable = create_table_client,
         dag = dag_dw)
 
     create_table_hotel_task = PythonOperator(
         task_id = 'create_table_hotel',
+        provide_context=True,
         python_callable = create_table_hotel,
         dag = dag_dw)
 
     create_table_chambre_task = PythonOperator(
         task_id = 'create_table_chambre',
+        provide_context=True,
         python_callable = create_table_chambre,
         dag = dag_dw)
 
     create_table_reservation_task = PythonOperator(
         task_id = 'create_table_reservation',
+        provide_context=True,
         python_callable = create_table_reservation,
         dag = dag_dw)
 
     alimente_dw_task = PythonOperator(
         task_id = 'alimente_dw',
+        provide_context=True,
         python_callable = alimente_dw,
         dag = dag_dw)
 
-# create_table_date_task >> create_table_client_task >> create_table_hotel_task >> create_table_chambre_task >> create_table_reservation_task >> alimente_dw
+#trigger_dag2 = TriggerDagRunOperator(task_id='trigger_dag2', trigger_dag_id='dag_dw', dag=dag_clean)
 
+
+#save_clean_file_task.set_upstream(trigger_dag2)
+#t_last.set_downstream(create_table_date_task)
 create_table_date_task.set_downstream(create_table_client_task)
 create_table_client_task.set_downstream(create_table_hotel_task)
 create_table_hotel_task.set_downstream(create_table_chambre_task)

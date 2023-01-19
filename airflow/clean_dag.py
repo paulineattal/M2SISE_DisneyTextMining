@@ -39,53 +39,53 @@ class MyDag(DAG):
 
 
 def recodage_type_float(**kwargs):
-    dag = kwargs['dag_run'].dag
+    df = kwargs['dag_run'].dag.df
     for i in ['grade_review']:
-        dag.df[i] = dag.df[i].str.replace(",",".")
-        dag.df[i] = pd.to_numeric(dag.df[i], downcast="float")
-    print(dag.df.dtypes)
-    #kwargs['dag_run'].dag.df = dag.df
+        df[i] = df[i].str.replace(",",".")
+        df[i] = pd.to_numeric(df[i], downcast="float")
+    print(df.dtypes)
+    kwargs['ti'].xcom_push(key='df_float', value=df)
 
 def ajout_levels(**kwargs):
-    dag = kwargs['dag_run'].dag
-    print(dag.df.dtypes)
+    df = kwargs['ti'].xcom_pull(key='df_float', task_ids='recodage_type_float')
+    print(df.dtypes)
     conditionlist_note = [
-    (dag.df['grade_review'] >= 8) ,
-    (dag.df['grade_review'] > 5) & (dag.df['grade_review'] <8),
-    (dag.df['grade_review'] <= 5)]
+    (df['grade_review'] >= 8) ,
+    (df['grade_review'] > 5) & (df['grade_review'] <8),
+    (df['grade_review'] <= 5)]
     choicelist_note = [2,1,0]
-    dag.df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
+    df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
     print('test')
     conditionlist_hotel = [
-    (dag.df['hotel'] == "Newport_Bay_Club"),
-    (dag.df['hotel'] == "New_York"),
-    (dag.df['hotel'] == "Sequoia_Lodge"),
-    (dag.df['hotel'] == "Cheyenne"),
-    (dag.df['hotel'] == "Santa_Fe"),
-    (dag.df['hotel'] == "Davy_Crockett_Ranch")
+    (df['hotel'] == "Newport_Bay_Club"),
+    (df['hotel'] == "New_York"),
+    (df['hotel'] == "Sequoia_Lodge"),
+    (df['hotel'] == "Cheyenne"),
+    (df['hotel'] == "Santa_Fe"),
+    (df['hotel'] == "Davy_Crockett_Ranch")
     ]
     choicelist_hotel = [6,5,4,3,2,1]
-    dag.df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
+    df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
     print('good')
-    #kwargs['dag_run'].dag.df = dag.df
+    kwargs['ti'].xcom_push(key='df_level', value=df)
 
-def recodage_type_int(**kwargs):
-    dag = kwargs['dag_run'].dag
+def recodage_type_int(**kwargs):    
+    df = kwargs['ti'].xcom_pull(key='df_level', task_ids='ajout_levels')
     for i in ['level_hotel', 'level_grade_review']:
-        dag.df[i] = dag.df[i].astype(int)    
-    #kwargs['dag_run'].dag.df = dag.df
+        df[i] = df[i].astype(int)   
+    kwargs['ti'].xcom_push(key='df_int', value=df) 
+
 
 def clean_date_ajout(**kwargs):
-    dag = kwargs['dag_run'].dag
-
-    df_moisreview=dag.df['date_review'].map(str)
-    for i in range(dag.df.shape[0]):
+    df = kwargs['ti'].xcom_pull(key='df_int', task_ids='recodage_type_int')
+    df_moisreview=df['date_review'].map(str)
+    for i in range(df.shape[0]):
         df_moisreview[i]=df_moisreview[i].split()[4]
-    df_moisreservation=dag.df['reservation_date'].map(str)
-    for i in range(dag.df.shape[0]):
+    df_moisreservation=df['reservation_date'].map(str)
+    for i in range(df.shape[0]):
         df_moisreservation[i]=df_moisreservation[i].split()[0].lower()
-        df_anneereservation=dag.df['reservation_date'].map(str)
-    for i in range(dag.df.shape[0]):
+        df_anneereservation=df['reservation_date'].map(str)
+    for i in range(df.shape[0]):
         df_anneereservation[i]=df_anneereservation[i].split()[1]
         from time import strptime
     import locale
@@ -97,29 +97,28 @@ def clean_date_ajout(**kwargs):
 
     d = {'month_str': df_moisreservation, 'month_num': list_mois_num, 'year' : df_anneereservation,  'delay_comment': delai}
     df_date = pd.DataFrame(data=d)
-    dag.df = pd.concat([dag.df,df_date], join = 'outer', axis = 1)
-    print(dag.df)
-    print(dag.df.dtypes)
-    #kwargs['dag_run'].dag.df = dag.df
+    df = pd.concat([df,df_date], join = 'outer', axis = 1)
+    print(df)
+    print(df.dtypes)
+    kwargs['ti'].xcom_push(key='df_clean_date', value=df) 
 
 
 def add_date(**kwargs) :
-    dag = kwargs['dag_run'].dag
-    dag.df = dag.df.drop_duplicates(keep='first')
-    dag.df.drop(dag.df[(dag.df.delay_comment >3)].index , inplace=True)
-    dag.df=dag.df.reset_index(drop=True)
-    df_date=dag.df['date_review'].map(str)
-    for i in range(dag.df.shape[0]):
+    df = kwargs['ti'].xcom_pull(key='df_clean_date', task_ids='clean_date_ajout')
+    df = df.drop_duplicates(keep='first')
+    df.drop(df[(df.delay_comment >3)].index , inplace=True)
+    df=df.reset_index(drop=True)
+    df_date=df['date_review'].map(str)
+    for i in range(df.shape[0]):
         pos=df_date[i].find('le')
         #extraction
         df_date[i] = df_date[i][pos+2:] 
-    dag.df['date_review']=df_date
-    dag.df["date"] = pd.to_datetime(dict(year=dag.df.year, month=dag.df.month_num, day=1))
-    #kwargs['dag_run'].dag.df_clean = df_clean
+    df['date_review']=df_date
+    df["date"] = pd.to_datetime(dict(year=df.year, month=df.month_num, day=1))
+    kwargs['ti'].xcom_push(key='df_add_date', value=df) 
 
 def save_clean_file(**kwargs):
-    dag = kwargs['dag_run'].dag
-
+    df = kwargs['ti'].xcom_pull(key='df_add_date', task_ids='add_date')
     try:
         conn = psycopg2.connect(
             user = "m140",
@@ -154,11 +153,11 @@ def save_clean_file(**kwargs):
                 ); '''
 
         fct.execute_req(conn, sql_create_historyclean)
-        fct.insert_values(conn, dag.df, 'historyclean')
+        fct.insert_values(conn, df, 'historyclean')
 
     except : 
         print ("Erreur lors de la récupération de la table PostgreSQL")
-        dag.df.to_csv(str(path)+"df_clean.csv", sep=';', index=False, encoding="utf-8-sig")
+        df.to_csv(str(path)+"df_clean.csv", sep=';', index=False, encoding="utf-8-sig")
 
 
 

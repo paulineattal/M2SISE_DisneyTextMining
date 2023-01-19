@@ -33,8 +33,8 @@ class MyDag(DAG):
         conn = psycopg2.connect(user = "m140",password = "m140",host = "db-etu.univ-lyon2.fr",port = "5432",database = "m140")
         try:
             cur = conn.cursor()
-            history = "SELECT * FROM history"
-            cur.execute(history)
+            history = "SELECT * FROM history WHERE execution_date = %s"
+            cur.execute(history, (str(kwargs['execution_date'].date()),))
             self.df = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
         except : 
             print ("Erreur lors de la récupération de la table PostgreSQL")
@@ -42,7 +42,9 @@ class MyDag(DAG):
 
 
 def recodage_type_float(**kwargs):
+    print(str(kwargs['execution_date'].date()))
     df = kwargs['dag_run'].dag.df
+    print(df["execution_date"].unique())
     for i in ['grade_review']:
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")

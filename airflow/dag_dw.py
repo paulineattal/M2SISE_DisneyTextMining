@@ -35,9 +35,15 @@ class MyDag(DAG):
         super(MyDag, self).__init__(*args, **kwargs)
 
  
-def alimente_dw_task(**kwargs):
+def alimente_dw(**kwargs):
+
+    print("*****************************")
+    print(kwargs['execution_date'].date())
+    print("*****************************")
+
     df = kwargs['dag_run'].dag.df
 
+    df['execution_date'] = kwargs['execution_date']
     #### table date #####
     df["id_date"] = df["date"].astype(str)
     df["id_date"] = df["id_date"].str.replace("-","")
@@ -90,11 +96,11 @@ def alimente_dw_task(**kwargs):
           port = "5432",
           database = "m139"
     )
-    fct.insert_values(conn, date, 'date')
-    fct.insert_values(conn, hotel, 'hotel')
-    fct.insert_values(conn, room, 'room')
-    fct.insert_values(conn, client, 'client')
-    fct.insert_values(conn, res, 'reservation')
+    fct.insert_values(conn, df_date, 'date')
+    fct.insert_values(conn, df_hotel, 'hotel')
+    fct.insert_values(conn, df_room, 'room')
+    fct.insert_values(conn, df_client, 'client')
+    fct.insert_values(conn, df_res, 'reservation')
 
 
 

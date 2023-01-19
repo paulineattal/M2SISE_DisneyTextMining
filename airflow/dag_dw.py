@@ -176,6 +176,7 @@ with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 0 * * 
 
 #save_clean_file_task.set_upstream(trigger_dag2)
 #t_last.set_downstream(create_table_date_task)
+
 create_table_date_task.set_downstream(create_table_client_task)
 create_table_client_task.set_downstream(create_table_hotel_task)
 create_table_hotel_task.set_downstream(create_table_chambre_task)

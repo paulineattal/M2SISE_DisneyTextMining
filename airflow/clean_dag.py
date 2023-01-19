@@ -61,15 +61,13 @@ def clean_date_ajout(**kwargs):
     d = {'month_str': df_moisreservation, 'month_num': list_mois_num, 'year' : df_anneereservation,  'delay_comment': delai}
     df_date = pd.DataFrame(data=d)
     df = pd.concat([df,df_date], join = 'outer', axis = 1)
-    print(df.columns)
     kwargs['dag_run'].dag.df = df
 
     
 
 def ajout_levels(**kwargs):
-    df = kwargs['dag_run'].dag.df
-    print("OK")
-    print(df)
+    df = kwargs['dag_run'].conf['df']
+    print(df.dtypes)
     conditionlist_note = [
     (df['grade_review'] >= 8) ,
     (df['grade_review'] > 5) & (df['grade_review'] <8),
@@ -96,7 +94,8 @@ def recodage_type_float(**kwargs):
     for i in ['grade_review']:
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
-    kwargs['dag_run'].dag.df = df
+    kwargs['dag_run'].conf['df'] = df
+
 
 def recodage_type_int(**kwargs):
     df = kwargs['dag_run'].dag.df
@@ -206,10 +205,9 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
     )
 # Tâche Airflow    
 
-
 recodage_type_float_task.set_downstream(ajout_levels_task)
 ajout_levels_task.set_downstream(recodage_type_int_task)
 recodage_type_int_task.set_downstream(clean_date_ajout_task)
-clean_date_ajout_task.set_downstream(add_date)
+clean_date_ajout_task.set_downstream(add_date_task)
 add_date_task.set_downstream(save_clean_file_task)
 save_clean_file_task.set_downstream(t_last)

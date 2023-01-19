@@ -21,10 +21,7 @@ chiffres = list("0123456789")
 def scrapping_hotel(hotel, history):
 
 
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        options.headless = True
-        driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
+        driver = webdriver.Chrome("/usr/local/bin/chromedriver")
         
         # Create list to get the data
         collectName = []

@@ -91,16 +91,19 @@ def ajout_levels(**kwargs):
     kwargs['dag_run'].dag.df = df
 
 
-def recodage_type(**kwargs):
+def recodage_type_float(**kwargs):
     df = kwargs['dag_run'].dag.df
     for i in ['grade_review']:
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
-
-    df['level_hotel'] = df['level_hotel'].astype(int)
-    df['level_grade_review'] = df['level_grade_review'].astype(int)
-    
     kwargs['dag_run'].dag.df = df
+
+def recodage_type_int(**kwargs):
+    df = kwargs['dag_run'].dag.df
+    for i in ['level_hotel', 'level_grade_review']:
+        df[i] = df[i].astype(int)    
+    kwargs['dag_run'].dag.df = df
+
 
 
 def add_date(**kwargs) :
@@ -176,9 +179,14 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
         python_callable = ajout_levels,
         dag = dag_clean)
 
-    recodage_type_task = PythonOperator(
-        task_id = 'recodage_type',
-        python_callable = recodage_type,
+    recodage_type_float_task = PythonOperator(
+        task_id = 'recodage_type_float',
+        python_callable = recodage_type_float,
+        dag = dag_clean)
+
+    recodage_type_int_task = PythonOperator(
+        task_id = 'recodage_type_int',
+        python_callable = recodage_type_int,
         dag = dag_clean)
 
     add_date_task = PythonOperator(
@@ -198,8 +206,10 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
     )
 # Tâche Airflow    
 
-clean_date_ajout_task.set_downstream(ajout_levels_task)
-ajout_levels_task.set_downstream(recodage_type_task)
-recodage_type_task.set_downstream(add_date_task)
+
+recodage_type_float_task.set_downstream(ajout_levels_task)
+ajout_levels_task.set_downstream(recodage_type_int_task)
+recodage_type_int_task.set_downstream(clean_date_ajout_task)
+clean_date_ajout_task.set_downstream(add_date)
 add_date_task.set_downstream(save_clean_file_task)
 save_clean_file_task.set_downstream(t_last)

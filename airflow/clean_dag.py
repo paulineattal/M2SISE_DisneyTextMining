@@ -8,6 +8,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from dateutil import parser
 import functions as fct
+import pickle
 #from dag_dw import dag_dw
 
 path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
@@ -43,13 +44,17 @@ def recodage_type_float(**kwargs):
     for i in ['grade_review']:
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
-    print(df.dtypes)
-    return df
-    #kwargs['ti'].xcom_push(key='df_float', value=df)
+    # print(df.dtypes)
+    df_pickle = pickle.dumps(df)
+    kwargs['ti'].xcom_push(key='dataframe_pickle', value=df_pickle)
+    print(df)
 
 def ajout_levels(**kwargs):
-    df = kwargs['ti'].xcom_pull(task_ids='recodage_type_float')
-    print(df.dtypes)
+
+    df_pickle = kwargs['ti'].xcom_pull(key='dataframe_pickle')
+    df = pickle.loads(df_pickle)
+    print(df)
+
     conditionlist_note = [
     (df['grade_review'] >= 8) ,
     (df['grade_review'] > 5) & (df['grade_review'] <8),

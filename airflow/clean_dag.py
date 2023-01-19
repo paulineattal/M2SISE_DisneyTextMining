@@ -38,8 +38,45 @@ class MyDag(DAG):
         super(MyDag, self).__init__(*args, **kwargs)
 
 
+def recodage_type_float(**kwargs):
+    dag = kwargs['dag_run'].dag
+    for i in ['grade_review']:
+        dag.df[i] = dag.df[i].str.replace(",",".")
+        dag.df[i] = pd.to_numeric(dag.df[i], downcast="float")
+    print(dag.df.dtypes)
+    #kwargs['dag_run'].dag.df = dag.df
+
+def ajout_levels(**kwargs):
+    dag = kwargs['dag_run'].dag
+    print(dag.df.dtypes)
+    conditionlist_note = [
+    (dag.df['grade_review'] >= 8) ,
+    (dag.df['grade_review'] > 5) & (dag.df['grade_review'] <8),
+    (dag.df['grade_review'] <= 5)]
+    choicelist_note = [2,1,0]
+    dag.df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
+    print('test')
+    conditionlist_hotel = [
+    (dag.df['hotel'] == "Newport_Bay_Club"),
+    (dag.df['hotel'] == "New_York"),
+    (dag.df['hotel'] == "Sequoia_Lodge"),
+    (dag.df['hotel'] == "Cheyenne"),
+    (dag.df['hotel'] == "Santa_Fe"),
+    (dag.df['hotel'] == "Davy_Crockett_Ranch")
+    ]
+    choicelist_hotel = [6,5,4,3,2,1]
+    dag.df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
+    print('good')
+    #kwargs['dag_run'].dag.df = dag.df
+
+def recodage_type_int(**kwargs):
+    dag = kwargs['dag_run'].dag
+    for i in ['level_hotel', 'level_grade_review']:
+        dag.df[i] = dag.df[i].astype(int)    
+    #kwargs['dag_run'].dag.df = dag.df
+
 def clean_date_ajout(**kwargs):
-    dag = kwargs['dag_run']
+    dag = kwargs['dag_run'].dag
 
     df_moisreview=dag.df['date_review'].map(str)
     for i in range(dag.df.shape[0]):
@@ -63,68 +100,25 @@ def clean_date_ajout(**kwargs):
     dag.df = pd.concat([dag.df,df_date], join = 'outer', axis = 1)
     print(dag.df)
     print(dag.df.dtypes)
-    #kwargs['dag_run'].dag.df = df
-
-    
-
-def ajout_levels(**kwargs):
-    dag = kwargs['dag_run'].dag
-    print(dag.df.dtypes)
-    conditionlist_note = [
-    (dag.df['grade_review'] >= 8) ,
-    (dag.df['grade_review'] > 5) & (dag.df['grade_review'] <8),
-    (dag.df['grade_review'] <= 5)]
-    choicelist_note = [2,1,0]
-    dag.df['level_grade_review'] = np.select(conditionlist_note, choicelist_note, default='Not Specified')
-    print('test')
-    conditionlist_hotel = [
-    (dag.df['hotel'] == "Newport_Bay_Club"),
-    (dag.df['hotel'] == "New_York"),
-    (dag.df['hotel'] == "Sequoia_Lodge"),
-    (dag.df['hotel'] == "Cheyenne"),
-    (dag.df['hotel'] == "Santa_Fe"),
-    (dag.df['hotel'] == "Davy_Crockett_Ranch")
-    ]
-    choicelist_hotel = [6,5,4,3,2,1]
-    dag.df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
-    print('good')
-    #kwargs['dag_run'].dag.df = df
-
-
-def recodage_type_float(**kwargs):
-    dag = kwargs['dag_run'].dag
-    for i in ['grade_review']:
-        dag.df[i] = dag.df[i].str.replace(",",".")
-        dag.df[i] = pd.to_numeric(dag.df[i], downcast="float")
-    #kwargs['dag_run'].conf['df'] = df
-
-
-def recodage_type_int(**kwargs):
-    dag = kwargs['dag_run'].dag
-    for i in ['level_hotel', 'level_grade_review']:
-        dag.df[i] = dag.df[i].astype(int)    
-    #kwargs['dag_run'].dag.df = df
-
+    #kwargs['dag_run'].dag.df = dag.df
 
 
 def add_date(**kwargs) :
-    df = kwargs['dag_run'].dag.df
-    df = df.drop_duplicates(keep='first')
-    df.drop(df[(df.delay_comment >3)].index , inplace=True)
-    df=df.reset_index(drop=True)
-    df_date=df['date_review'].map(str)
-    for i in range(df.shape[0]):
+    dag = kwargs['dag_run'].dag
+    dag.df = dag.df.drop_duplicates(keep='first')
+    dag.df.drop(dag.df[(dag.df.delay_comment >3)].index , inplace=True)
+    dag.df=dag.df.reset_index(drop=True)
+    df_date=dag.df['date_review'].map(str)
+    for i in range(dag.df.shape[0]):
         pos=df_date[i].find('le')
         #extraction
         df_date[i] = df_date[i][pos+2:] 
-    df['date_review']=df_date
-    df["date"] = pd.to_datetime(dict(year=df.year, month=df.month_num, day=1))
-    df_clean = df.copy()
-
-    kwargs['dag_run'].dag.df_clean = df_clean
+    dag.df['date_review']=df_date
+    dag.df["date"] = pd.to_datetime(dict(year=dag.df.year, month=dag.df.month_num, day=1))
+    #kwargs['dag_run'].dag.df_clean = df_clean
 
 def save_clean_file(**kwargs):
-    df_clean = kwargs['dag_run'].dag.df_clean
+    dag = kwargs['dag_run'].dag.
 
     try:
         conn = psycopg2.connect(
@@ -160,19 +154,19 @@ def save_clean_file(**kwargs):
                 ); '''
 
         fct.execute_req(conn, sql_create_historyclean)
-        fct.insert_values(conn, df_clean, 'historyclean')
+        fct.insert_values(conn, dag.df, 'historyclean')
 
     except : 
         print ("Erreur lors de la récupération de la table PostgreSQL")
-        df_clean.to_csv(str(path)+"df_clean.csv", sep=';', index=False, encoding="utf-8-sig")
+        dag.df.to_csv(str(path)+"df_clean.csv", sep=';', index=False, encoding="utf-8-sig")
 
 
 
 with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * * *') as dag_clean:
     
-    clean_date_ajout_task = PythonOperator(
-        task_id = 'clean_date_ajout',
-        python_callable = clean_date_ajout,
+    recodage_type_float_task = PythonOperator(
+        task_id = 'recodage_type_float',
+        python_callable = recodage_type_float,
         dag = dag_clean)
 
     ajout_levels_task = PythonOperator(
@@ -180,14 +174,14 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
         python_callable = ajout_levels,
         dag = dag_clean)
 
-    recodage_type_float_task = PythonOperator(
-        task_id = 'recodage_type_float',
-        python_callable = recodage_type_float,
-        dag = dag_clean)
-
     recodage_type_int_task = PythonOperator(
         task_id = 'recodage_type_int',
         python_callable = recodage_type_int,
+        dag = dag_clean)
+
+    clean_date_ajout_task = PythonOperator(
+        task_id = 'clean_date_ajout',
+        python_callable = clean_date_ajout,
         dag = dag_clean)
 
     add_date_task = PythonOperator(
@@ -200,7 +194,7 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
         python_callable = save_clean_file,
         dag = dag_clean)
 
-    t_last = TriggerDagRunOperator(
+    last_task = TriggerDagRunOperator(
         dag=dag_clean,
         task_id='last',
         trigger_dag_id = 'dag_dw'
@@ -212,4 +206,4 @@ ajout_levels_task.set_downstream(recodage_type_int_task)
 recodage_type_int_task.set_downstream(clean_date_ajout_task)
 clean_date_ajout_task.set_downstream(add_date_task)
 add_date_task.set_downstream(save_clean_file_task)
-save_clean_file_task.set_downstream(t_last)
+save_clean_file_task.set_downstream(last_task)

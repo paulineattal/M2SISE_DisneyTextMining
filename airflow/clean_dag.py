@@ -8,7 +8,9 @@ import pandas as pd
 from datetime import datetime, timedelta
 from dateutil import parser
 import functions as fct
-import pickle
+import json
+from time import strptime
+import locale
 #from dag_dw import dag_dw
 
 path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
@@ -45,14 +47,15 @@ def recodage_type_float(**kwargs):
         df[i] = df[i].str.replace(",",".")
         df[i] = pd.to_numeric(df[i], downcast="float")
     # print(df.dtypes)
-    #df_pickle = pickle.dumps(df)
-    print(df.dtypes)
-    kwargs['ti'].xcom_push(key='df_float', value=df_pickle)
+
+    df = df.to_json(orient="records", force_ascii=False)
+    
+    kwargs['ti'].xcom_push(key='df_float', value=df)
 
 def ajout_levels(**kwargs):
 
-    df = kwargs['ti'].xcom_pull(key='df_float', task_id='recodage_type_float')
-    #df = pickle.loads(df_pickle)
+    df = kwargs['ti'].xcom_pull(key='df_float', task_ids='recodage_type_float')
+    df = pd.read_json(df)
     print(df.dtypes)
 
     conditionlist_note = [
@@ -74,18 +77,25 @@ def ajout_levels(**kwargs):
     df['level_hotel'] = np.select(conditionlist_hotel, choicelist_hotel, default='Not Specified')
     print('good')
     
+    df = df.to_json(orient="records", force_ascii=False)
+    
     kwargs['ti'].xcom_push(key='df_level', value=df)
 
 def recodage_type_int(**kwargs):    
     df = kwargs['ti'].xcom_pull(key='df_level',task_ids='ajout_levels')
-    for i in ['level_hotel', 'level_grade_review']:
-        df[i] = df[i].astype(int)   
-    return df
-    #kwargs['ti'].xcom_push(key='df_int', value=df) 
+    df = pd.read_json(df)
+
+    df['level_hotel'] = df['level_hotel'].astype(int)
+    df['level_grade_review'] = df['level_grade_review'].astype(int)
+  
+    df = df.to_json(orient="records", force_ascii=False)
+
+    kwargs['ti'].xcom_push(key='df_int', value=df) 
 
 
 def clean_date_ajout(**kwargs):
-    df = kwargs['ti'].xcom_pull(task_ids='recodage_type_int')
+    df = kwargs['ti'].xcom_pull(key='df_int', task_ids='recodage_type_int')
+    df = pd.read_json(df)
     df_moisreview=df['date_review'].map(str)
     for i in range(df.shape[0]):
         df_moisreview[i]=df_moisreview[i].split()[4]
@@ -95,8 +105,7 @@ def clean_date_ajout(**kwargs):
         df_anneereservation=df['reservation_date'].map(str)
     for i in range(df.shape[0]):
         df_anneereservation[i]=df_anneereservation[i].split()[1]
-        from time import strptime
-    import locale
+
     locale.setlocale(locale.LC_TIME,'')
 
     list_mois_num = [strptime(moisreservation,'%B').tm_mon for moisreservation in df_moisreservation]
@@ -108,12 +117,16 @@ def clean_date_ajout(**kwargs):
     df = pd.concat([df,df_date], join = 'outer', axis = 1)
     print(df)
     print(df.dtypes)
-    return df
-    #kwargs['ti'].xcom_push(key='df_clean_date', value=df) 
+
+    df = df.to_json(orient="records", force_ascii=False)
+
+    kwargs['ti'].xcom_push(key='df_clean_date', value=df) 
 
 
 def add_date(**kwargs) :
-    df = kwargs['ti'].xcom_pull(task_ids='clean_date_ajout')
+    df = kwargs['ti'].xcom_pull(key='df_clean_date', task_ids='clean_date_ajout')
+    df = pd.read_json(df)
+
     df = df.drop_duplicates(keep='first')
     df.drop(df[(df.delay_comment >3)].index , inplace=True)
     df=df.reset_index(drop=True)
@@ -124,11 +137,14 @@ def add_date(**kwargs) :
         df_date[i] = df_date[i][pos+2:] 
     df['date_review']=df_date
     df["date"] = pd.to_datetime(dict(year=df.year, month=df.month_num, day=1))
-    return df
-    #kwargs['ti'].xcom_push(key='df_add_date', value=df) 
+    
+    df = df.to_json(orient="records", force_ascii=False)
+
+    kwargs['ti'].xcom_push(key='df_add_date', value=df) 
 
 def save_clean_file(**kwargs):
-    df = kwargs['ti'].xcom_pull(task_ids='add_date')
+    df = kwargs['ti'].xcom_pull(key='df_add_date', task_ids='add_date')
+    df = pd.read_json(df)
     try:
         conn = psycopg2.connect(
             user = "m140",
@@ -176,11 +192,13 @@ with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * 
     recodage_type_float_task = PythonOperator(
         task_id = 'recodage_type_float',
         python_callable = recodage_type_float,
+        provide_context=True,
         dag = dag_clean)
 
     ajout_levels_task = PythonOperator(
         task_id = 'ajout_levels',
         python_callable = ajout_levels,
+        provide_context=True,
         dag = dag_clean)
 
     recodage_type_int_task = PythonOperator(

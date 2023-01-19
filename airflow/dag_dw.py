@@ -6,7 +6,7 @@ import pandas as pd
 import uuid
 import functions as fct
 from datetime import datetime, timedelta
-from clean_dag import dag_clean, save_clean_file_task
+#from clean_dag import dag_clean, save_clean_file_task
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 default_args = {

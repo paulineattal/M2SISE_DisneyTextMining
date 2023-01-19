@@ -1,6 +1,7 @@
 # Dependencies
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
@@ -9,15 +10,19 @@ import requests
 import io
 import numpy as np
 import pandas as pd
+import psycopg2
+import psycopg2.extras as extras
+from pyvirtualdisplay import Display
 
 # Get the driver
+HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
+chiffres = list("0123456789")
 
 def scrapping_hotel(hotel, history):
 
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
 
+        driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+        
         # Create list to get the data
         collectName = []
         collectCountry = []
@@ -45,14 +50,14 @@ def scrapping_hotel(hotel, history):
         driver.find_element(By.XPATH, '//*[@id="review_sort"]/option[2]').click()
         time.sleep(2)
 
-        n_pages = driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text
+        n_pages = int(driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text)
         time.sleep(1)
-        n_pages = int(n_pages)
 
         check = 0
 
         for p in range(1,n_pages+1):
             time.sleep(2)
+            print(p)
 
             if check == 0:
 
@@ -169,7 +174,7 @@ def scrapping_hotel(hotel, history):
                         UniqueID = str(name) + str(country) + str(type_room) + str(month_year) + str(voyageur_info) + str(date_review) + str(review_title)
                         
                         try: 
-                            check = len(history[history['UniqueID'] == UniqueID])
+                            check = len(history[history['uniqueid'] == UniqueID])
                         except: 
                             check = 0
                     

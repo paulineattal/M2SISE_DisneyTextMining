@@ -118,7 +118,7 @@ def add_date(**kwargs) :
     #kwargs['dag_run'].dag.df_clean = df_clean
 
 def save_clean_file(**kwargs):
-    dag = kwargs['dag_run'].dag.
+    dag = kwargs['dag_run'].dag
 
     try:
         conn = psycopg2.connect(

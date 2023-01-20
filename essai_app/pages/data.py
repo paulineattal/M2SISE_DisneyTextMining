@@ -8,6 +8,7 @@ import psycopg2
 import gunicorn
 import base64
 import io
+import plotly.express as px
 
 def store_data():
     #importation de la BDD sur Postgrey à partir d'une connexion
@@ -57,3 +58,10 @@ def store_data():
     res_client_date = res_client.merge(date, on="id_date")
     df = res_client_date.merge(hotel_room, on="id_room")
     return df.to_dict('records')
+
+def sungraph(df):
+    fig = px.sunburst(df, path=['year', 'month_str'], values='nuitee',
+                  color='grade_review',
+                  color_continuous_scale='RdBu',
+                  color_continuous_midpoint=np.average(df['grade_review'], weights=df['nuitee']))
+    return(fig)

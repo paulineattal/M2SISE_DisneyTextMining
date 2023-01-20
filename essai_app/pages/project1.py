@@ -9,48 +9,6 @@ import numpy as np
 import psycopg2
 from .data import store_data
 
-#Le titre de cette page sera project1 dans la barre de naviation (nom du fichier.py)
-#en seconde position dans la barre de naviation car order =1
-dash.register_page(__name__, order=1)
-
-df=pd.DataFrame(store_data())
-
-#------------------------------traitement du data frame-----------------------------------------
-#-----------------------------------------------------------------------------------------------
-
-#on passe la variable date sous forme de date
-df['date']=pd.to_datetime(df['date'])
-#on détermine la date la plus ancienne 
-min=df.date.min()
-#et celle la plus récente
-#elles permettront de réactualiser aisément la  sélection dans le calendrier
-max=df.date.max()
-#on met les dates en index pour la sélection
-# car ensuite nous utiliserons le picker range dans les inputs
-df.set_index('date',inplace=True)
-
-#-------------------dictionnaires-----------------------------------------------------------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#Création d'un dictionnaire pour le filtre hôtel (dropdown)
-hotel_dict=[{'label':html.Div(['Newport Bay Club'],style={'font-size':22}),'value':6},{'label':html.Div(['Art of Marvel'],style={'font-size':22}),'value':5},{'label':html.Div(['Sequoia Lodge'],style={'font-size':22}),'value':4},{'label':html.Div(['Cheyenne'],style={'font-size':22}),'value':3},{'label':html.Div(['Santa Fé'],style={'font-size':22}),'value':2},{'label':html.Div(['Davy Crockett Ranch'],style={'font-size':22}),'value':1}]
-
-#Création d'un dictionnaire pour le filtre notes (dropdown)
-notes_dict=[{'label':html.Div(['Toutes notes'],style={'font-size':22}),'value':3},{'label':html.Div(['note >=8'],style={'font-size':22}),'value':2},{'label':html.Div(['5 < note < 8'],style={'font-size':22}),'value':1},{'label':html.Div(['notes <= 5'],style={'font-size':22}),'value':0}]
-
-#------------------fonctions pour la traitement des données----------------------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-#fonction qui renvoi une sunburst en fonction de l'année puis du mois
-#et renvoi les indicateurs suivants par mois : nombre de nuitées, moyenne des notes
-#avec une échelle de valeurs colorée en fonction de la note moyenne obtenue
-def sungraph(df):
-    fig = px.sunburst(df, path=['year', 'month_str'], values='nuitee',
-                  color='grade_review',
-                  color_continuous_scale='RdBu',
-                  color_continuous_midpoint=np.average(df['grade_review'], weights=df['nuitee']))
-    return(fig)
-
 #Définition de la carte date
 card_date=dbc.Card([
 

@@ -24,7 +24,7 @@ default_args = {
     'owner' : "Text-Mining_Project",
     
     # Lancer le DAG chaque jour
-    'start_date' : datetime(2023, 1, 17),
+    'start_date' : datetime(2023, 1, 22),
     'depends_on_past' : False,
 
     # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
@@ -37,7 +37,7 @@ dag = DAG(
     default_args = default_args,
 
     # Executer tous les jours à minuit
-    schedule_interval = '0 0 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
+    schedule_interval = '0 1 * * *' # on peut le modifier par timedelta(hours=1) si on veut faire des tests chaque heure
 )
 
 

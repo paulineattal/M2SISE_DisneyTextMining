@@ -19,7 +19,7 @@ default_args = {
     'owner' : "Text-Mining_Project",
     
     # Lancer le DAG chaque jour
-    'start_date' : datetime(2023, 1, 17),
+    'start_date' : datetime(2023, 1, 22),
     'depends_on_past' : False,
 
     # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
@@ -189,7 +189,7 @@ def save_clean_file(**kwargs):
 
 
 
-with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 0 * * *') as dag_clean:
+with MyDag( 'clean_dag',default_args = default_args, schedule_interval = '0 4 * * *') as dag_clean:
     
     recodage_type_float_task = PythonOperator(
         task_id = 'recodage_type_float',

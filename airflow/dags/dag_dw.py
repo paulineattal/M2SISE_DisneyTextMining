@@ -14,7 +14,7 @@ import ftfy
 default_args = {
     'owner' : "Text-Mining_Project",
     # Lancer le DAG chaque jour
-    'start_date' : datetime(2023, 1, 17),
+    'start_date' : datetime(2023, 1, 22),
     'depends_on_past' : False,
     # Si jamais l'éxecution fail, retenter 1 fois au bout de 5 minutes
     'retries' : 1,
@@ -104,7 +104,7 @@ def alimente_dw(**kwargs):
 
 
 
-with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 0 * * *') as dag_dw:
+with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 6 * * *') as dag_dw:
 
     # Tâche Airflow    
 

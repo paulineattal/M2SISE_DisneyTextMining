@@ -1,0 +1,8 @@
+beautifulsoup4==4.11.1
+pandas<=1.1.5
+psycopg2-binary==2.9.5
+selenium==3.141.0
+SQLAlchemy==1.4.46
+SQLAlchemy-JSONField==1.0.0
+SQLAlchemy-Utils==0.39.0
+

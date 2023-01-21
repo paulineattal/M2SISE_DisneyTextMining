@@ -28,7 +28,8 @@ USER airflow
 #RUN airflow db reset
 RUN airflow db init
 #RUN airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@admin.org 
-
+#a commenter si ca marche pas 
+#RUN airflow users create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
 
 
 #CMD ["bash", "-c", " airflow db reset && airflow db init && airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@admin.org && airflow webserver & airflow scheduler"]

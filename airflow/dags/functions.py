@@ -43,9 +43,11 @@ def scrapping_hotel(hotel, history):
         driver.find_element(By.XPATH, '//*[@id="review_sort"]/option[2]').click()
         time.sleep(2)
 
+        # Récupérer le nombre de pages pour déterminer quand il faut s'arrêter
         n_pages = int(driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text)
         time.sleep(1)
 
+        # Initialiser le check à 0 qui servira si nous avons déjà l'information
         check = 0
 
         for p in range(1,n_pages+1):
@@ -116,6 +118,7 @@ def scrapping_hotel(hotel, history):
                         except:
                             date_review = np.nan
 
+                        # Supprimer le caractère le choix des voyageurs lorsqu'il est écrit
                         if date_review == 'Le choix des voyageurs' : 
             
                             try:
@@ -164,8 +167,10 @@ def scrapping_hotel(hotel, history):
                             is_review_usefull = np.nan
                         collectIs_review_usefull.append(is_review_usefull)
 
+                        # Création d'un ID unique pour déterminer si nous avons déjà le commentaire ou non
                         UniqueID = str(name) + str(country) + str(type_room) + str(month_year) + str(voyageur_info) + str(date_review) + str(review_title)
                         
+                        # Si nous avons un doublon, le check deviendra > 0 et le scrapping s'arrêtera
                         try: 
                             check = len(history[history['uniqueid'] == UniqueID])
                         except: 
@@ -198,6 +203,8 @@ def scrapping_hotel(hotel, history):
         negative_review = collectNegative_review
         usefulness_review = collectIs_review_usefull
         UniqueID = collectUniqueID
+
+        # Nom de colonnes
         columns = ['Names', 'Country', 'room_type', 'nuitee', 'reservation_date', 'traveler_infos', 'date_review', 'review_title', 'grade_review', 'positive_review', 'negative_review', 'usefulness_review', 'UniqueID']
         df = pd.DataFrame(list(zip(Names, Country,room_type, nuitee, reservation_date, traveler_infos, date_review, review_title, grade_review, positive_review, negative_review, usefulness_review, UniqueID)), columns=columns)
         df=df.assign(hotel= str(list(HotelsUrls.keys())[hotel]))
@@ -214,17 +221,8 @@ def scrapping_hotel(hotel, history):
         df.loc[df.nuitee == "N", "nuitee"] = np.nan
         # Garder uniquement le nombre de nuitee passée dans l'hotel
         df["nuitee"] = df["nuitee"].str[:1]
-
-        #### Nettoyage ####
-        # if history.columns[0] == '404: Not Found' : 
-        #     pass
-        # else: 
-        #     df = pd.concat([df, history], ignore_index=True)
-
-        # Supprimer les doublons (si jamais il en existe, normalement non)
-        # df.drop_duplicates(keep='first')
-        # Supprimer les lignes qui ont été récupérées en trop
         
+        # Supprimer les commentaires scrappés en trop (l'unique ID renvoie 'nannannannannannannan')
         df.drop(df[df['UniqueID'] == 'nannannannannannannan'].index, inplace = True)
         return df
 

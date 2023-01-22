@@ -1,26 +1,17 @@
 # Dependencies
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
-from bs4 import BeautifulSoup
 import time
-import requests
-import io
 import numpy as np
 import pandas as pd
 import psycopg2
 import psycopg2.extras as extras
-from pyvirtualdisplay import Display
 
 # Get the driver
 HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
 chiffres = list("0123456789")
 
 def scrapping_hotel(hotel, history):
-
-
         driver = webdriver.Chrome("/usr/local/bin/chromedriver")
         
         # Create list to get the data
@@ -233,9 +224,9 @@ def scrapping_hotel(hotel, history):
         # Supprimer les lignes qui ont été récupérées en trop
         
         df.drop(df[df['UniqueID'] == 'nannannannannannannan'].index, inplace = True)
-
         return df
 
+#Fonction pour execter une requete req vers la connexion conn 
 def execute_req(conn, req):
     try: 
         cursor = conn.cursor()
@@ -245,6 +236,7 @@ def execute_req(conn, req):
     except (Exception, psycopg2.Error) as error :
         print ("Erreur lors de la création du table PostgreSQL", error)
 
+#Fonction pour inserer des valeurs provenant un DataFrame df, dans la table table de la connexion conn
 def insert_values(conn, df, table):
     tuples = [tuple(x) for x in df.to_numpy()]
     cols = ','.join(list(df.columns))
@@ -255,9 +247,9 @@ def insert_values(conn, df, table):
         extras.execute_values(cursor, query, tuples)
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print("Error: %s" % error)
+        print("Erreur: %s" % error)
         conn.rollback()
         cursor.close()
         return 1
-    print("the dataframe is inserted")
+    print("Le dataframe à été inseré")
     cursor.close()

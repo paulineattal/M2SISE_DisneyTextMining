@@ -6,11 +6,8 @@ import pandas as pd
 import uuid
 import functions as fct
 from datetime import datetime, timedelta
-#from clean_dag import dag_clean, save_clean_file_task
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-import json
-import ftfy
 
+#Propriétés du DAG
 default_args = {
     'owner' : "Text-Mining_Project",
     # Lancer le DAG chaque jour
@@ -21,29 +18,26 @@ default_args = {
     'retry_delay' : timedelta(minutes=5)
 }
 
-
+#La classe MyDag hérite de la classe DAG d'Airflow
 class MyDag(DAG):
     def __init__(self, *args, **kwargs):
+        #Connexion à la base de données PostgreSQL
         conn = psycopg2.connect(user = "m140",password = "m140",host = "db-etu.univ-lyon2.fr",port = "5432",database = "m140")
         try:
             cur = conn.cursor()
+            #Récupération de toutes les données de la table "historyclean"
             history = "SELECT * FROM historyclean"
             cur.execute(history)
+            #Ces données sont mises dans un DF et dans la variable de classe df
             self.df = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
         except : 
             print ("Erreur lors de la récupération de la table PostgreSQL")
         super(MyDag, self).__init__(*args, **kwargs)
 
- 
+#fonction qui créer les differentes tables du DW et qui alimente celui-ci
 def alimente_dw(**kwargs):
-
-    print("*****************************")
-    print(kwargs['execution_date'].date())
-    print("*****************************")
-
+    #recuperation du DF créer depuis la BDD
     df = kwargs['dag_run'].dag.df
-
-    df['execution_date'] = kwargs['execution_date']
     #### table date #####
     df["id_date"] = df["date"].astype(str)
     df["id_date"] = df["id_date"].str.replace("-","")
@@ -103,21 +97,14 @@ def alimente_dw(**kwargs):
     fct.insert_values(conn, df_res, 'reservation')
 
 
-
+#Les tâche vont se lancer tous les jours à 6h 
 with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 6 * * *') as dag_dw:
 
-    # Tâche Airflow    
-
+    #Définition de la tâche Airflow    
     alimente_dw_task = PythonOperator(
         task_id = 'alimente_dw',
         provide_context=True,
         python_callable = alimente_dw,
         dag = dag_dw)
-
-#trigger_dag2 = TriggerDagRunOperator(task_id='trigger_dag2', trigger_dag_id='dag_dw', dag=dag_clean)
-
-
-#save_clean_file_task.set_upstream(trigger_dag2)
-#t_last.set_downstream(create_table_date_task)
 
 alimente_dw_task

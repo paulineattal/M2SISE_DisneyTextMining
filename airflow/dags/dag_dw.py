@@ -38,6 +38,9 @@ class MyDag(DAG):
 def alimente_dw(**kwargs):
     #recuperation du DF créer depuis la BDD
     df = kwargs['dag_run'].dag.df
+
+    #création des différentes tables de l'entrepot de données 
+
     #### table date #####
     df["id_date"] = df["date"].astype(str)
     df["id_date"] = df["id_date"].str.replace("-","")
@@ -90,6 +93,7 @@ def alimente_dw(**kwargs):
           port = "5432",
           database = "m139"
     )
+    #on suppose que les tables sont deja crées dans l'entrepot, on alimente juste les tables 
     fct.insert_values(conn, df_date, 'date')
     fct.insert_values(conn, df_hotel, 'hotel')
     fct.insert_values(conn, df_room, 'room')
@@ -97,7 +101,7 @@ def alimente_dw(**kwargs):
     fct.insert_values(conn, df_res, 'reservation')
 
 
-#Les tâche vont se lancer tous les jours à 6h 
+#La tâche va se lancer tous les jours à 6h 
 with MyDag( 'dag_dw' ,default_args = default_args, schedule_interval = '0 6 * * *') as dag_dw:
 
     #Définition de la tâche Airflow    

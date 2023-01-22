@@ -51,6 +51,7 @@ def scrapping():
             history = pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description])
         #si c'est la premiere fois qu'on scrapt, on créer la tabla dans la BDD
         except: 
+                #requete de création de la table history si on n'a pas réussie a r♪cupérer les données
                 sql_create_history = '''CREATE TABLE IF NOT EXISTS history(
                 Names TEXT
                 Country TEXT,
@@ -67,6 +68,7 @@ def scrapping():
                 UniqueID TEXT,
                 hotel TEXT
                 ); '''
+                #execution de la requete
                 fct.execute_req(conn, sql_create_history)
         cur.close()
         conn.close()

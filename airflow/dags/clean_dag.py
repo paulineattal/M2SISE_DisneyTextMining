@@ -50,7 +50,7 @@ def recodage_type_float(**kwargs):
 
 #Fonction qui 
 def ajout_levels(**kwargs):
-    #Pull de DF issus de la fonction de nettoyage précédente 
+    #Pull le DF issus de la fonction de nettoyage précédente 
     df = kwargs['ti'].xcom_pull(key='df_float', task_ids='recodage_type_float')
     df = pd.read_json(df)
 
@@ -76,10 +76,10 @@ def ajout_levels(**kwargs):
 
 #Fonction qui recode les champs ["level_hotel", "level_grade_review"] en int
 def recodage_type_int(**kwargs):    
-    #Pull de DF issus de la fonction de nettoyage précédente 
+    #Pull le DF issus de la fonction de nettoyage précédente 
     df = kwargs['ti'].xcom_pull(key='df_level',task_ids='ajout_levels')
     df = pd.read_json(df)
-
+    #application de la fonction astype()
     df['level_hotel'] = df['level_hotel'].astype(int)
     df['level_grade_review'] = df['level_grade_review'].astype(int)
     #Push le DF pour la fonction de nettoyage suivante
@@ -88,7 +88,7 @@ def recodage_type_int(**kwargs):
 
 #fonction qui ajoute des information sur la date et sur le delais entre la reservation et la date du commentaire
 def clean_date_ajout(**kwargs):
-    #Pull de DF issus de la fonction de nettoyage précédente 
+    #Pull le DF issus de la fonction de nettoyage précédente 
     df = kwargs['ti'].xcom_pull(key='df_int', task_ids='recodage_type_int')
     df = pd.read_json(df)
     #extrait du mois du commentaire
@@ -118,19 +118,21 @@ def clean_date_ajout(**kwargs):
 
 #Fonction qui ajoute la date au bon format
 def add_date(**kwargs) :
-    #Pull de DF issus de la fonction de nettoyage précédente 
+    #Pull le DF issus de la fonction de nettoyage précédente 
     df = kwargs['ti'].xcom_pull(key='df_clean_date', task_ids='clean_date_ajout')
     df = pd.read_json(df)
-
+    #petite préparation 
     df = df.drop_duplicates(keep='first')
     df.drop(df[(df.delay_comment >3)].index , inplace=True)
     df=df.reset_index(drop=True)
+    #transformer le champs "date_review" au bon type
     df_date=df['date_review'].map(str)
     for i in range(df.shape[0]):
         pos=df_date[i].find('le')
         #extraction
         df_date[i] = df_date[i][pos+2:] 
     df['date_review']=df_date
+    #ajouter un champs date de commentaire
     df["date"] = pd.to_datetime(dict(year=df.year, month=df.month_num, day=1))
     #Push le DF pour la fonction de nettoyage suivante
     df = df.to_json(orient="records", force_ascii=False)
@@ -150,6 +152,7 @@ def save_clean_file(**kwargs):
             port = "5432",
             database = "m140"
         )
+        #requete SQL de creation de la table "historyclean"
         sql_create_historyclean = '''CREATE TABLE IF NOT EXISTS historyclean(
                 Names TEXT,
                 Country TEXT,
@@ -173,6 +176,7 @@ def save_clean_file(**kwargs):
                 delay_comment INT,
                 date DATE)
                 ; '''
+        #executer la requete de creation de la table "historyclean"
         fct.execute_req(conn, sql_create_historyclean)
         #Inserer le DF clean dans la table "historyclean"
         fct.insert_values(conn, df, 'historyclean')

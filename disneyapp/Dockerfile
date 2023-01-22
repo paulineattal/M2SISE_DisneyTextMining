@@ -16,4 +16,4 @@ RUN python -m nltk.downloader stopwords
 RUN python -c "import nltk"
 COPY . ./
  
-CMD [ "gunicorn", "-b 0.0.0.0:80", "app:server"]
+CMD [ "gunicorn", "-b 0.0.0.0:60", "app:server"]

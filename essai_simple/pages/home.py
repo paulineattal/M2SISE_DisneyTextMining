@@ -45,8 +45,8 @@ layout = html.Div([
                         #texte dans le première liste
                         html.Li('La moyenne des notes'),
                         html.Li('Le pourcentage du groupe sélectionné'),
-                        html.Li('Un graphique avec, par mois et année,'),
-                        html.Li('le nombre de nuit et la moyenne des notes')
+                        html.Li('Un graphique avec, par mois et année,\n'
+                               'le nombre de nuit et la moyenne des notes')
                     ])
                 #largeur de la colonne
                 ], width=5)

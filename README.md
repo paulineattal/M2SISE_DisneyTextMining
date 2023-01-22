@@ -1,7 +1,7 @@
 # Disney-Text-Mining
 This text Minig project is in collaboration with Disneyland Paris.
 
-![](images/castle.png)
+![](images/castle_disney.png)
 
 The objectives of this project will be to scrape data from
 Booking, an online booking site, and integrate this data into a database, then analyse the information from this database.

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import psycopg2
 import psycopg2.extras as extras
+import datetime
 
 # Get the driver
 HotelsUrls = {'Newport_Bay_Club' : 'https://www.booking.com/hotel/fr/disney-39-s-newport-bay-club-r.fr.html#tab-reviews', 'Cheyenne' : 'https://www.booking.com/hotel/fr/disney-39-s-cheyenne-r.fr.html#tab-reviews', 'Sequoia_Lodge' : 'https://www.booking.com/hotel/fr/disneys-sequoia-lodge-r.fr.html#tab-reviews', 'New_York' : 'https://www.booking.com/hotel/fr/disney-39-s-new-york-r.fr.html#tab-reviews', 'Davy_Crockett_Ranch' : 'https://www.booking.com/hotel/fr/disneys-davy-crockett-ranch.fr.html#tab-reviews', 'Santa_Fe' : 'https://www.booking.com/hotel/fr/disney-39-s-santa-fe-r.fr.html#tab-reviews'}
@@ -43,14 +44,15 @@ def scrapping_hotel(hotel, history):
         driver.find_element(By.XPATH, '//*[@id="review_sort"]/option[2]').click()
         time.sleep(2)
 
+        driver.find_element(By.CLASS_NAME, "pagenext").click()     
+
         # Récupérer le nombre de pages pour déterminer quand il faut s'arrêter
-        n_pages = int(driver.find_element(By.XPATH, '//*[@id="review_list_page_container"]/div[4]/div/div[1]/div/div[2]/div/div[7]/a/span[1]').text)
         time.sleep(1)
 
         # Initialiser le check à 0 qui servira si nous avons déjà l'information
         check = 0
 
-        for p in range(1,n_pages+1):
+        for p in range(1,150+1):
             time.sleep(2)
             print(p)
 
@@ -224,6 +226,9 @@ def scrapping_hotel(hotel, history):
         
         # Supprimer les commentaires scrappés en trop (l'unique ID renvoie 'nannannannannannannan')
         df.drop(df[df['UniqueID'] == 'nannannannannannannan'].index, inplace = True)
+
+        date = datetime.date.today()
+        df = df.assign(execution_date= str(date))
         return df
 
 #Fonction pour execter une requete req vers la connexion conn 

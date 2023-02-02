@@ -20,7 +20,6 @@ import psycopg2.extras as extras
 path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
 
 def scrapping():
-    print("Scrapping Init")
     try:
         conn = psycopg2.connect(
             user = "m140",
@@ -58,8 +57,6 @@ def scrapping():
                 fct.execute_req(conn, sql_create_history)
 
 
-        cur.close()
-        conn.close()
     except (Exception, psycopg2.Error) as error :
         print ("Erreur lors de la connexion à PostgreSQL", error)
 
@@ -78,6 +75,7 @@ def scrapping():
     except : 
         pass
 
+    new_df.to_csv(r'C:\Users\houde\Desktop\Scrapping\Backup.csv', index = False, sep=';', encoding='utf-8')
     fct.insert_values(conn, new_df, 'history')
 
 

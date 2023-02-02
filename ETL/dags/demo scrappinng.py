@@ -17,7 +17,7 @@ import functions as fct
 from functions import HotelsUrls
 import psycopg2.extras as extras
 
-path = '/Users/titouanhoude/Documents/GitHub/Disney-Text-Mining/fichiers/'
+path = r'C:\Users\pattal\Documents\Disney\prépa\Disney-Text-Mining\ETL\dags'
 
 def scrapping():
     try:
@@ -51,7 +51,8 @@ def scrapping():
                 negative_review TEXT,
                 usefulness_review INT,
                 UniqueID TEXT,
-                hotel TEXT
+                hotel TEXT,
+                execution_date TEXT
                 ); '''
 
                 fct.execute_req(conn, sql_create_history)

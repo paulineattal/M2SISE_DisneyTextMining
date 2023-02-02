@@ -223,7 +223,7 @@ def scrapping_hotel(hotel, history):
         df.loc[df.nuitee == "N", "nuitee"] = np.nan
         # Garder uniquement le nombre de nuitee passée dans l'hotel
         df["nuitee"] = df["nuitee"].str[:1]
-        
+        df["nuitee"] = df["nuitee"].fillna(0)
         # Supprimer les commentaires scrappés en trop (l'unique ID renvoie 'nannannannannannannan')
         df.drop(df[df['UniqueID'] == 'nannannannannannannan'].index, inplace = True)
 
@@ -244,9 +244,12 @@ def execute_req(conn, req):
 #Fonction pour inserer des valeurs provenant un DataFrame df, dans la table table de la connexion conn
 def insert_values(conn, df, table):
     tuples = [tuple(x) for x in df.to_numpy()]
+    print("coucou")
     cols = ','.join(list(df.columns))
+    print('bonjour')
     # SQL query to execute
     query = "INSERT INTO %s(%s) VALUES %%s" % (table, cols)
+    print("oui")
     cursor = conn.cursor()
     try:
         extras.execute_values(cursor, query, tuples)
